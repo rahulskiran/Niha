@@ -40,6 +40,19 @@
 
 {% render 'collection-wrapper-styles' %}
 
+{% stylesheet %}
+  /* --padding-inline-start/end are set as inherited custom properties on the outer section
+     wrapper by Shopify's own runtime; redeclaring them on a descendant here overrides the
+     inherited value for every mobile-width consumer (collection-wrapper-styles.liquid) without
+     needing to fight specificity or duplicate its selectors. */
+  @media screen and (max-width: 749px) {
+    .collection-wrapper {
+      --padding-inline-start: {{ section.settings.padding-inline-start-mobile }}px;
+      --padding-inline-end: {{ section.settings.padding-inline-end-mobile }}px;
+    }
+  }
+{% endstylesheet %}
+
 <div
   class="section-background{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}"
 ></div>
@@ -247,6 +260,27 @@
       "step": 1,
       "unit": "px",
       "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-inline-start-mobile",
+      "label": "Left padding (mobile)",
+      "info": "Overrides the left/right padding above, below 750px only.",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "padding-inline-end-mobile",
+      "label": "Right padding (mobile)",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 16
     },
     {
       "type": "header",
