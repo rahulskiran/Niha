@@ -442,8 +442,9 @@
         "mark": "",
         "mark_sup": "",
         "columns": 6,
-        "column_gap": 18,
+        "column_gap": 10,
         "row_gap": 48,
+        "padding_inline": 40,
         "padding_block_start": 64,
         "padding_block_end": 96,
         "show_discount_tag": true,
@@ -451,11 +452,11 @@
         "add_to_cart_label": "Add to cart",
         "sold_out_label": "Sold out",
         "currency_prefix": "Rs.",
-        "color_background": "#F2F0EA",
-        "color_ink": "#201C19",
-        "color_muted": "#8B8577",
-        "color_line": "#DCD7CB",
-        "color_wine": "#1F3D2C"
+        "color_background": "#f2f0ea",
+        "color_ink": "#201c19",
+        "color_muted": "#8b8577",
+        "color_line": "#dcd7cb",
+        "color_wine": "#1f3d2c"
       }
     }
   },
