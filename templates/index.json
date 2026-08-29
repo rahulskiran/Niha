@@ -168,11 +168,11 @@
       "type": "product-grid",
       "name": "Product grid",
       "settings": {
-        "collection": "luxe",
+        "collection": "dresses",
         "max_products": 8,
         "show_heading": true,
         "heading_font": "syne_n4",
-        "mark": "Shop Luxe Collection",
+        "mark": "Shop Dresses Collection",
         "mark_sup": "",
         "columns": 6,
         "column_gap": 10,
