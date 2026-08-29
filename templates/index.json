@@ -12,6 +12,13 @@
     "hero_sec_new_HMtGEi": {
       "type": "HeroSecNew",
       "blocks": {
+        "slide_kqKwYX": {
+          "type": "slide",
+          "settings": {
+            "image_desktop": "shopify://shop_images/Project_-_Aug_30_02_34_AM_-_2_1b53f4f2-fa9d-4236-bf5e-d9a1fe4519a2.png",
+            "image_mobile": "shopify://shop_images/Project_-_Aug_30_02_34_AM_-_8.png"
+          }
+        },
         "slide_fAzhg9": {
           "type": "slide",
           "settings": {
@@ -28,6 +35,7 @@
         }
       },
       "block_order": [
+        "slide_kqKwYX",
         "slide_fAzhg9",
         "slide_1"
       ],
