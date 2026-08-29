@@ -170,7 +170,7 @@
     padding-block: var(--pgrid-padding-block-start, 64px) var(--pgrid-padding-block-end, 96px);
     padding-inline: var(--pgrid-padding-inline, 40px);
     color: var(--pgrid-ink, #201c19);
-    font-family: var(--font-body--family);
+    font-family: var(--pgrid-ui-font-family, var(--font-body--family));
     -webkit-font-smoothing: antialiased;
   }
 
@@ -183,14 +183,14 @@
   }
 
   .pgrid-mark {
-    font-family: var(--font-heading--family);
+    font-family: var(--pgrid-heading-font-family, var(--font-heading--family));
     font-weight: 700;
     font-size: 22px;
     letter-spacing: 0.02em;
   }
 
   .pgrid-mark sup {
-    font-family: var(--font-body--family);
+    font-family: var(--pgrid-ui-font-family, var(--font-body--family));
     font-size: 11px;
     font-weight: 500;
     color: var(--pgrid-wine, #5b332f);
@@ -301,7 +301,7 @@
   .pgrid__name {
     flex: 1;
     margin: 18px 0 4px;
-    font-family: var(--font-heading--family);
+    font-family: var(--pgrid-name-font-family, var(--font-heading--family));
     font-weight: 400;
     font-size: 17px;
     line-height: 1.3;
@@ -345,7 +345,7 @@
     background: none;
     border: 1px solid var(--pgrid-ink, #201c19);
     color: var(--pgrid-ink, #201c19);
-    font-family: var(--font-body--family);
+    font-family: var(--pgrid-ui-font-family, var(--font-body--family));
     font-size: 11px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -404,6 +404,18 @@
       "id": "show_heading",
       "label": "Show heading",
       "default": true
+    },
+    {
+      "type": "select",
+      "id": "heading_font",
+      "label": "Heading font",
+      "options": [
+        { "value": "body", "label": "Body" },
+        { "value": "subheading", "label": "Subheading" },
+        { "value": "heading", "label": "Heading" },
+        { "value": "accent", "label": "Accent" }
+      ],
+      "default": "heading"
     },
     {
       "type": "text",
@@ -485,6 +497,31 @@
     {
       "type": "header",
       "content": "Product card"
+    },
+    {
+      "type": "select",
+      "id": "name_font",
+      "label": "Product name font",
+      "options": [
+        { "value": "body", "label": "Body" },
+        { "value": "subheading", "label": "Subheading" },
+        { "value": "heading", "label": "Heading" },
+        { "value": "accent", "label": "Accent" }
+      ],
+      "default": "heading"
+    },
+    {
+      "type": "select",
+      "id": "ui_font",
+      "label": "UI font",
+      "info": "Used for the discount tag, price and add to cart button.",
+      "options": [
+        { "value": "body", "label": "Body" },
+        { "value": "subheading", "label": "Subheading" },
+        { "value": "heading", "label": "Heading" },
+        { "value": "accent", "label": "Accent" }
+      ],
+      "default": "body"
     },
     {
       "type": "checkbox",
