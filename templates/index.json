@@ -450,7 +450,7 @@
         "padding_inline": 40,
         "padding_block_start": 64,
         "padding_block_end": 96,
-        "name_font": "heading",
+        "name_font": "accent",
         "ui_font": "body",
         "show_discount_tag": true,
         "show_add_to_cart": true,
