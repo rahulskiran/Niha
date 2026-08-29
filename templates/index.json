@@ -26,6 +26,73 @@
         "overlay_opacity": 0
       }
     },
+    "category_grid_tXeaKU": {
+      "type": "category-grid",
+      "blocks": {
+        "category_tile_Wp7w67": {
+          "type": "_category-tile",
+          "settings": {
+            "link": "shopify://collections/whats-new",
+            "label": "What's new",
+            "background_color": "#4a0e12",
+            "icon_style": "collar",
+            "icon_image": "shopify://shop_images/6_9654e718-a4ac-436b-994f-269a9d3ac1bf.jpg"
+          },
+          "blocks": {}
+        },
+        "category_tile_MPx3iX": {
+          "type": "_category-tile",
+          "settings": {
+            "link": "shopify://collections/best-sellers",
+            "label": "Best sellers",
+            "background_color": "#d3ccc0",
+            "icon_style": "collar",
+            "icon_image": "shopify://shop_images/WhatsApp_Image_2025-06-17_at_11.29.55_f1de6067.jpg"
+          },
+          "blocks": {}
+        },
+        "category_tile_dgDyEP": {
+          "type": "_category-tile",
+          "settings": {
+            "link": "shopify://collections/dresses",
+            "label": "Dresses",
+            "background_color": "#b15d63",
+            "icon_style": "collar",
+            "icon_image": "shopify://shop_images/WhatsApp_Image_2025-06-17_at_11.30.09_a68afd3b.jpg"
+          },
+          "blocks": {}
+        },
+        "category_tile_xQbcMH": {
+          "type": "_category-tile",
+          "settings": {
+            "link": "shopify://collections/luxe",
+            "label": "Luxe",
+            "background_color": "#123524",
+            "icon_style": "thin-strap",
+            "icon_image": "shopify://shop_images/WhatsApp_Image_2025-06-17_at_11.30.18_36ea4e84.jpg"
+          },
+          "blocks": {}
+        }
+      },
+      "block_order": [
+        "category_tile_Wp7w67",
+        "category_tile_MPx3iX",
+        "category_tile_dgDyEP",
+        "category_tile_xQbcMH"
+      ],
+      "name": "Category grid",
+      "settings": {
+        "columns": 4,
+        "gap": 24,
+        "padding_inline": 40,
+        "padding_block_start": 48,
+        "padding_block_end": 48,
+        "label_font": "accent",
+        "color_background": "#f2f0ea",
+        "color_ink": "#201c19",
+        "color_accent": "#1f3d2c"
+      }
+    },
     "threesec_zkWyDr": {
       "type": "threesec",
       "blocks": {
@@ -494,73 +561,11 @@
         "color_line": "#dcd7cb",
         "color_wine": "#1f3d2c"
       }
-    },
-    "category_grid_tXeaKU": {
-      "type": "category-grid",
-      "blocks": {
-        "category_tile_Wp7w67": {
-          "type": "_category-tile",
-          "settings": {
-            "link": "",
-            "label": "What's new",
-            "background_color": "#4a0e12",
-            "icon_style": "collar"
-          },
-          "blocks": {}
-        },
-        "category_tile_MPx3iX": {
-          "type": "_category-tile",
-          "settings": {
-            "link": "",
-            "label": "Best sellers",
-            "background_color": "#d3ccc0",
-            "icon_style": "collar"
-          },
-          "blocks": {}
-        },
-        "category_tile_dgDyEP": {
-          "type": "_category-tile",
-          "settings": {
-            "link": "",
-            "label": "Dresses",
-            "background_color": "#b15d63",
-            "icon_style": "collar"
-          },
-          "blocks": {}
-        },
-        "category_tile_xQbcMH": {
-          "type": "_category-tile",
-          "settings": {
-            "link": "",
-            "label": "Luxe",
-            "background_color": "#123524",
-            "icon_style": "thin-strap"
-          },
-          "blocks": {}
-        }
-      },
-      "block_order": [
-        "category_tile_Wp7w67",
-        "category_tile_MPx3iX",
-        "category_tile_dgDyEP",
-        "category_tile_xQbcMH"
-      ],
-      "name": "Category grid",
-      "settings": {
-        "columns": 4,
-        "gap": 24,
-        "padding_inline": 40,
-        "padding_block_start": 48,
-        "padding_block_end": 48,
-        "label_font": "heading",
-        "color_background": "#F2F0EA",
-        "color_ink": "#201C19",
-        "color_accent": "#1F3D2C"
-      }
     }
   },
   "order": [
     "hero_sec_new_HMtGEi",
+    "category_grid_tXeaKU",
     "threesec_zkWyDr",
     "twocat_bKTbXT",
     "pagefly_section_HxY8xH",
@@ -568,7 +573,6 @@
     "new1_fFtKqV",
     "product_list_fa6P9H",
     "recentsale_EtUKx8",
-    "product_grid_hbwjwk",
-    "category_grid_tXeaKU"
+    "product_grid_hbwjwk"
   ]
 }
