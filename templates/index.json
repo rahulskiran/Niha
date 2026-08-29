@@ -170,8 +170,8 @@
       "settings": {
         "collection": "luxe",
         "max_products": 8,
-        "show_heading": false,
-        "heading_font": "garamond_n4",
+        "show_heading": true,
+        "heading_font": "bebas_neue_n4",
         "mark": "",
         "mark_sup": "",
         "columns": 6,
