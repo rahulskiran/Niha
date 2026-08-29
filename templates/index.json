@@ -441,7 +441,7 @@
         "max_products": 8,
         "mark": "",
         "mark_sup": "",
-        "columns": 4,
+        "columns": 6,
         "column_gap": 18,
         "row_gap": 48,
         "padding_block_start": 64,
