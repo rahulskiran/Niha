@@ -1,0 +1,205 @@
+{% doc %}
+  @prompt
+    Create a script to filter the main product gallery based on the selected variant. When a user selects a variant option (like Color), hide all images that do not have matching Alt Text. Keep images visible if their Alt Text is empty. Ensure the script updates immediately when the user clicks a different variant.
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-variant-gallery-filter-{{ ai_gen_id }} {
+    display: none;
+  }
+{% endstyle %}
+
+<div class="ai-variant-gallery-filter-{{ ai_gen_id }}" {{ block.shopify_attributes }}></div>
+
+<script>
+  (function() {
+    class VariantGalleryFilter{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+        this.productForm = null;
+        this.galleryImages = [];
+        this.currentVariant = null;
+      }
+
+      connectedCallback() {
+        this.init();
+      }
+
+      init() {
+        this.productForm = document.querySelector('product-form, form[action*="/cart/add"]');
+        
+        if (!this.productForm) {
+          return;
+        }
+
+        this.findGalleryImages();
+        this.setupVariantListener();
+        this.filterImagesOnLoad();
+      }
+
+      findGalleryImages() {
+        const possibleSelectors = [
+          '.product__media-list img',
+          '.product-media-gallery img',
+          '.product__media img',
+          '[data-media-id] img',
+          '.product-gallery img',
+          '.media img'
+        ];
+
+        for (const selector of possibleSelectors) {
+          const images = document.querySelectorAll(selector);
+          if (images.length > 0) {
+            this.galleryImages = Array.from(images).map(img => ({
+              element: img,
+              container: img.closest('[data-media-id], .product__media-item, .media, li, .product-media-item') || img.parentElement,
+              alt: (img.alt || '').toLowerCase().trim()
+            }));
+            break;
+          }
+        }
+      }
+
+      setupVariantListener() {
+        const variantSelects = document.querySelectorAll('variant-selects, variant-radios, [name^="options["]');
+        
+        variantSelects.forEach(element => {
+          if (element.tagName === 'VARIANT-SELECTS' || element.tagName === 'VARIANT-RADIOS') {
+            element.addEventListener('change', () => this.handleVariantChange());
+          } else {
+            element.addEventListener('change', () => this.handleVariantChange());
+            element.addEventListener('click', () => this.handleVariantChange());
+          }
+        });
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const variantId = urlParams.get('variant');
+        if (variantId) {
+          setTimeout(() => this.handleVariantChange(), 100);
+        }
+      }
+
+      handleVariantChange() {
+        setTimeout(() => {
+          this.currentVariant = this.getCurrentVariantOptions();
+          this.filterImages();
+        }, 50);
+      }
+
+      getCurrentVariantOptions() {
+        const options = [];
+        
+        const variantSelects = document.querySelectorAll('select[name^="options["]');
+        variantSelects.forEach(select => {
+          if (select.value) {
+            options.push(select.value.toLowerCase().trim());
+          }
+        });
+
+        const variantRadios = document.querySelectorAll('input[type="radio"][name^="options["]:checked');
+        variantRadios.forEach(radio => {
+          if (radio.value) {
+            options.push(radio.value.toLowerCase().trim());
+          }
+        });
+
+        const variantButtons = document.querySelectorAll('button[data-option-value].selected, .variant-input:checked');
+        variantButtons.forEach(button => {
+          const value = button.dataset.optionValue || button.value;
+          if (value) {
+            options.push(value.toLowerCase().trim());
+          }
+        });
+
+        return options;
+      }
+
+      filterImagesOnLoad() {
+        this.currentVariant = this.getCurrentVariantOptions();
+        if (this.currentVariant.length > 0) {
+          this.filterImages();
+        }
+      }
+
+      filterImages() {
+        if (!this.currentVariant || this.currentVariant.length === 0) {
+          this.showAllImages();
+          return;
+        }
+
+        this.galleryImages.forEach(({ container, alt }) => {
+          if (!alt || alt === '') {
+            this.showImage(container);
+            return;
+          }
+
+          const shouldShow = this.currentVariant.some(option => alt.includes(option));
+          
+          if (shouldShow) {
+            this.showImage(container);
+          } else {
+            this.hideImage(container);
+          }
+        });
+      }
+
+      showImage(container) {
+        container.style.display = '';
+        container.style.visibility = 'visible';
+        container.style.opacity = '1';
+        container.style.pointerEvents = 'auto';
+        container.removeAttribute('hidden');
+      }
+
+      hideImage(container) {
+        container.style.display = 'none';
+        container.style.visibility = 'hidden';
+        container.style.opacity = '0';
+        container.style.pointerEvents = 'none';
+      }
+
+      showAllImages() {
+        this.galleryImages.forEach(({ container }) => {
+          this.showImage(container);
+        });
+      }
+    }
+
+    customElements.define('variant-gallery-filter-{{ ai_gen_id }}', VariantGalleryFilter{{ ai_gen_id }});
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Variant gallery filter",
+  "tag": null,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "This block filters product gallery images based on the selected variant. Images with Alt Text matching the variant option (e.g., Color) will be shown. Images with empty Alt Text will always be visible."
+    },
+    {
+      "type": "header",
+      "content": "Instructions"
+    },
+    {
+      "type": "paragraph",
+      "content": "1. Add this block to your product template"
+    },
+    {
+      "type": "paragraph",
+      "content": "2. Set Alt Text on product images to match variant option values (e.g., 'Red', 'Blue', 'Large')"
+    },
+    {
+      "type": "paragraph",
+      "content": "3. Images will automatically filter when customers select variants"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Variant gallery filter"
+    }
+  ]
+}
+{% endschema %}

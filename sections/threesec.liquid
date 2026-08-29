@@ -1,0 +1,1243 @@
+{% liquid
+  # --- FONT SETTINGS ---
+  # Now using direct font_picker objects
+  assign selected_heading_font = section.settings.heading_font
+  assign selected_title_font = section.settings.category_title_font
+  
+  assign overlay_opacity = section.settings.overlay_opacity | divided: 100.0
+  assign full_width_enabled = section.settings.full_width_desktop
+  assign heading_color = section.settings.heading_color
+  
+  assign enable_video_loop = section.settings.enable_video_autoplay_loop
+  assign show_video_controls = section.settings.show_video_controls
+
+  assign desktop_bg_image = section.settings.background_image_desktop
+  assign mobile_bg_image = section.settings.background_image_mobile
+  assign bg_size_setting = section.settings.background_size_mode 
+
+  # Background Color setting
+  assign section_bg_color = section.settings.background_color
+  
+  # New Scroll Bar Settings
+  assign show_progress = section.settings.show_scroll_progress
+  assign mobile_layout = section.settings.mobile_layout
+  assign shape_style = section.settings.shape_style
+  assign initial_progress = section.settings.scroll_bar_initial_progress | default: 5
+  
+  # Heading Padding Settings
+  assign heading_pad_h_desktop = section.settings.heading_padding_horizontal_desktop | default: 0
+  assign heading_pad_h_mobile = section.settings.heading_padding_horizontal_mobile | default: 0
+  
+  # Mobile Spacing Settings
+  assign category_top_spacing_mobile = section.settings.category_top_spacing_mobile | default: 20
+  assign progress_bar_top_spacing_mobile = section.settings.progress_bar_top_spacing_mobile | default: 10
+  
+  # Individual Corner Radius Settings
+  assign radius_tl = section.settings.corner_radius_top_left | default: 0
+  assign radius_tr = section.settings.corner_radius_top_right | default: 0
+  assign radius_bl = section.settings.corner_radius_bottom_left | default: 0
+  assign radius_br = section.settings.corner_radius_bottom_right | default: 0
+
+
+  assign controls_enabled = show_video_controls
+
+  if full_width_enabled
+    assign max_width_style = 'none'
+  else
+    assign max_width_style = section.settings.section_max_width | append: 'px'
+  endif
+%}
+
+{% style %}
+/* Load selected fonts from Shopify Library */
+{{ selected_heading_font | font_face: font_display: 'swap' }}
+{{ selected_title_font | font_face: font_display: 'swap' }}
+
+/* Define CSS variables for settings */
+.category-section-{{ section.id }} {
+  /* --- DESKTOP PADDING --- */
+  padding-top: {{ section.settings.padding_top_desktop }}px;
+  padding-bottom: {{ section.settings.padding_bottom_desktop }}px;
+  padding-left: {{ section.settings.padding_left_desktop }}px;
+  padding-right: {{ section.settings.padding_right_desktop }}px;
+
+  /* --- APPLY SECTION BACKGROUND COLOR --- */
+  {% if section_bg_color != blank %}
+  background-color: {{ section_bg_color }};
+  {% endif %}
+  /* -------------------------------------- */
+
+  max-width: {{ max_width_style }};
+  margin-left: auto;
+  margin-right: auto;
+
+  /* Custom Variables based on settings */
+  --grid-columns: {{ section.settings.grid_columns }};
+  --overlay-color: rgba(0, 0, 0, {{ overlay_opacity }});
+  
+  /* --- NEW CORNER RADIUS VARIABLES --- */
+  --radius-tl: {{ radius_tl }}px;
+  --radius-tr: {{ radius_tr }}px;
+  --radius-bl: {{ radius_bl }}px;
+  --radius-br: {{ radius_br }}px;
+
+  /* Desktop Font Size Variables */
+  --heading-size-desktop: {{ section.settings.heading_font_size_desktop }}px;
+  --title-size-desktop: {{ section.settings.category_title_size_desktop }}px;
+
+  /* Calculate padding-bottom based on aspect ratio setting */
+  {% case section.settings.aspect_ratio %}
+    {% when 'ratio_1_1' %}
+      --media-padding-bottom: 100%; /* Square (1:1) */
+    {% when 'ratio_3_4' %}
+      --media-padding-bottom: 133.33%; /* Portrait (3:4) */
+    {% when 'ratio_16_9' %}
+      --media-padding-bottom: 56.25%; /* Wide (16:9) */
+    {% else %} /* ratio_4_3 */
+      --media-padding-bottom: 75%; /* Landscape (4:3) */
+  {% endcase %}
+}
+
+/* --- BACKGROUND IMAGE APPLICATION (Desktop Default) --- */
+{% if desktop_bg_image != blank %}
+.category-section-{{ section.id }} {
+    /* Note: background-image sits on top of background-color */
+    background-image: url('{{ desktop_bg_image | image_url: width: 2000 }}');
+    background-size: {{ bg_size_setting }};
+    background-position: center center;
+    background-repeat: no-repeat;
+}
+{% endif %}
+
+/* Apply custom heading font, DESKTOP size, and DESKTOP spacing */
+.category-section-{{ section.id }} h2 {
+  font-family: {{ selected_heading_font.family }}, {{ selected_heading_font.fallback_families }};
+  font-weight: {{ selected_heading_font.weight }};
+  font-style: {{ selected_heading_font.style }};
+  font-size: var(--heading-size-desktop); 
+  color: {{ heading_color }};
+  margin-bottom: {{ section.settings.heading_spacing_desktop }}px; /* Vertical GAP */
+  /* --- NEW: DESKTOP HORIZONTAL PADDING --- */
+  padding-left: {{ heading_pad_h_desktop }}px;
+  padding-right: {{ heading_pad_h_desktop }}px;
+  /* --------------------------------------- */
+}
+
+/* Apply custom category title font and DESKTOP size */
+.category-title {
+  font-family: {{ selected_title_font.family }}, {{ selected_title_font.fallback_families }};
+  font-weight: {{ selected_title_font.weight }};
+  font-style: {{ selected_title_font.style }};
+  font-size: var(--title-size-desktop); 
+  margin: 0;
+  line-height: 1.2;
+  
+  /* Shadow Option Logic */
+  {% if section.settings.enable_text_shadow %}
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6); 
+  {% else %}
+    text-shadow: none;
+  {% endif %}
+}
+
+/* --- FIX: Hide Native Controls on Hover for Autoplay Videos (Enhanced and Fixed) --- */
+{% unless show_video_controls %}
+.category-media video {
+    /* Prevents controls being triggered by mouse/touch on the video element itself */
+    pointer-events: none;
+    /* Ensure the video content is always below the card link/overlay */
+    z-index: 10;
+}
+/* Ensure controls are hidden even if browser tries to force them */
+.category-media video::-webkit-media-controls-enclosure {
+    display: none !important;
+}
+.category-media video::-webkit-media-controls {
+    display: none !important;
+}
+
+/* CRITICAL FIX: Use a transparent overlay on the anchor tag to ensure 
+   clicks/hovers are registered on the link, not the video, thus preventing 
+   the momentary flash of controls on interaction. 
+*/
+.category-card:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 15; /* Higher than video (10) but lower than title content (20) */
+    pointer-events: auto; /* Allows the anchor link to capture the click */
+}
+{% endunless %}
+/* --- END FIX --- */
+
+
+/* --- Desktop Styles (min-width: 768px) --- */
+.category-grid {
+  display: grid;
+  /* Apply customizable gap settings for desktop */
+  gap: {{ section.settings.gap_vertical_desktop }}px {{ section.settings.gap_horizontal_desktop }}px;
+  margin: 0 auto;
+}
+
+@media screen and (min-width: 768px) {
+  .category-grid {
+    /* Explicitly define desktop columns */
+    grid-template-columns: repeat(var(--grid-columns), 1fr);
+    margin-top: 0; /* Reset mobile margin */
+    margin-bottom: 0; /* Reset mobile margin */
+  }
+}
+
+/* --- Mobile and Responsive Styles --- */
+@media screen and (max-width: 767px) {
+  /* --- MOBILE BACKGROUND IMAGE OVERRIDE --- */
+  {% if mobile_bg_image != blank %}
+  .category-section-{{ section.id }} {
+      background-image: url('{{ mobile_bg_image | image_url: width: 1000 }}');
+      background-size: {{ bg_size_setting }};
+      background-position: center center;
+      background-repeat: no-repeat;
+  }
+  {% endif %}
+  /* --- END MOBILE BACKGROUND --- */
+
+  .category-section-{{ section.id }} {
+    /* --- MOBILE PADDING --- */
+    padding-top: {{ section.settings.padding_top_mobile }}px;
+    padding-bottom: {{ section.settings.padding_bottom_mobile }}px;
+
+    /* Horizontal padding for mobile is handled differently based on layout */
+    padding-left: {{ section.settings.padding_left_mobile }}px;
+    padding-right: {{ section.settings.padding_right_mobile }}px;
+
+    {% if section.settings.mobile_layout == 'slider' %}
+      /* Remove horizontal padding for slider, as it's applied to the scrollable container */
+      padding-left: 0;
+      padding-right: 0;
+    {% endif %}
+  }
+
+  /* --- APPLY MOBILE TYPOGRAPHY & SPACING OVERRIDES (FIXED) --- */
+  /* Apply Mobile Heading Size and MOBILE spacing override */
+  .category-section-{{ section.id }} h2 {
+    font-size: {{ section.settings.heading_font_size_mobile }}px;
+    color: {{ heading_color }};
+    margin-bottom: {{ section.settings.heading_spacing_mobile }}px; /* Vertical GAP */
+    /* --- NEW: MOBILE HEADING HORIZONTAL PADDING --- */
+    padding-left: {{ heading_pad_h_mobile }}px;
+    padding-right: {{ heading_pad_h_mobile }}px;
+    /* ---------------------------------------------- */
+  }
+  
+  /* NEW: Apply vertical space below heading to the start of the grid/cards */
+  .category-section-{{ section.id }} .category-grid {
+      margin-top: {{ category_top_spacing_mobile }}px;
+      /* FIX: Use margin-bottom on the grid to create space above the progress bar */
+      margin-bottom: {{ progress_bar_top_spacing_mobile }}px;
+  }
+
+
+  /* Apply Mobile Category Title Size */
+  .category-section-{{ section.id }} .category-title {
+    font-size: {{ section.settings.category_title_size_mobile }}px;
+  }
+  /* --- END TYPOGRAPHY FIX --- */
+
+
+  /* Mobile GRID Layout (Uses the new select setting) */
+  .category-grid.mobile-grid {
+    /* Explicitly define mobile columns and override desktop display */
+    grid-template-columns: repeat({{ section.settings.grid_columns_mobile }}, 1fr);
+    /* Use a fixed small gap for mobile grid */
+    gap: 15px; 
+    /* Ensure side padding is applied if layout is grid */
+    padding-left: {{ section.settings.padding_left_mobile }}px;
+    padding-right: {{ section.settings.padding_right_mobile }}px;
+  }
+
+  /* Mobile SLIDER Layout (Swipeable carousel with progressive scroll) */
+  .category-grid.mobile-slider {
+    display: flex; /* Override desktop grid display */
+    overflow-x: scroll; /* Enables horizontal scrolling */
+    gap: 20px; /* Space between items, adjust as needed */
+    scroll-snap-type: x mandatory; /* Snap effect for smooth sliding */
+    
+    /* --- START SCROLLBAR HIDE FIX --- */
+    padding-bottom: 0px; /* Set to 0 to prevent space for native scrollbar */
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+    /* --- END SCROLLBAR HIDE FIX --- */
+
+    /* Apply the mobile horizontal padding to the scrollable container itself */
+    padding-left: {{ section.settings.padding_left_mobile }}px;
+    padding-right: {{ section.settings.padding_right_mobile }}px;
+  }
+  
+  /* --- START WEBKIT SCROLLBAR HIDE FIX (Chrome, Safari) --- */
+  .category-grid.mobile-slider::-webkit-scrollbar {
+    display: none;
+  }
+  /* --- END WEBKIT SCROLLBAR HIDE FIX --- */
+
+  .category-grid.mobile-slider .category-card {
+    flex-shrink: 0; /* Important: prevents shrinking */
+    /* Calculate width to show one card with a slight peek on the sides for a better carousel feel */
+    width: calc(100% - ({{ section.settings.padding_left_mobile }}px + {{ section.settings.padding_right_mobile }}px + 20px)); /* 20px is for the gap between items */
+    scroll-snap-align: center; /* Snap to center of item */
+    margin: 0; /* Reset any default margins */
+  }
+  
+  /* Progress bar alignment override for mobile (when BELOW the grid) */
+  .category-scroll-progress-wrapper {
+    /* Reset margin-top, space now controlled by .category-grid margin-bottom */
+    margin-top: 0;
+    padding: 0 {{ section.settings.padding_left_mobile }}px 0 {{ section.settings.padding_left_mobile }}px; 
+  }
+}
+
+/* Resetting mobile-slider specific styles for desktop view */
+@media screen and (min-width: 768px) {
+  .category-grid.mobile-slider {
+    /* Ensure desktop uses grid and reset flex/scroll properties */
+    display: grid; 
+    overflow-x: visible;
+    scroll-snap-type: none;
+    padding-bottom: 0;
+    padding-left: 0 !important; /* Reset for desktop */
+    padding-right: 0 !important; /* Reset for desktop */
+  }
+
+  .category-grid.mobile-slider .category-card {
+    width: auto;
+    margin-left: 0;
+    margin-right: 0;
+    flex-shrink: 1; /* Reset flex-shrink for desktop */
+  }
+}
+
+/* --- Mobile Scroll Progress Bar Styles --- */
+.category-scroll-progress-wrapper {
+  margin: 0 auto;
+  max-width: {{ max_width_style }}; 
+}
+
+/* Hide the progress bar on desktop */
+@media screen and (min-width: 768px) {
+  .category-scroll-progress-wrapper {
+    display: none;
+  }
+}
+
+.category-scroll-progress-track {
+  height: 4px;
+  background-color: {{ section.settings.scroll_bar_track_color }};
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.category-scroll-progress-bar {
+  height: 100%;
+  width: 0%; /* Initial state (will be updated by JS on load) */
+  background-color: {{ section.settings.scroll_bar_progress_color }};
+  transition: width 0.1s ease; /* Smooth transition for updates */
+}
+
+
+/* --- Common Card Styles with Shape Handling --- */
+.category-card {
+  position: relative;
+  /* Default all corners to the new variables if shape is not square/circle */
+  border-radius: var(--radius-tl) var(--radius-tr) var(--radius-br) var(--radius-bl);
+  
+  /* Reset clip-path by default, only circle overrides below */
+  clip-path: none;
+  -webkit-clip-path: none;
+  
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* SHAPE STYLES based on setting */
+{% case shape_style %}
+
+  {% when 'square' %}
+    /* FIX: Explicitly apply individual radii for the 'Square' option */
+    .category-card {
+      border-radius: var(--radius-tl) var(--radius-tr) var(--radius-br) var(--radius-bl);
+    }
+    
+  {% when 'circle' %}
+    /* Circle Shape overrides all radii to 50% */
+    .category-card {
+      border-radius: 50% !important;
+      aspect-ratio: 1 / 1; /* Enforce square for circle */
+    }
+    /* Ensure media and content conform to the circle */
+    .category-media, .category-content {
+      border-radius: 50% !important;
+      clip-path: none !important;
+    }
+    /* Override aspect ratio to enforce 1:1 for circle only */
+    .category-media {
+      padding-bottom: 100% !important;
+    }
+    
+{% endcase %}
+
+/* Ensure inner elements inherit the correct radius, unless it's a special shape */
+{% if shape_style == 'circle' %}
+  /* Handled above */
+{% else %}
+  /* Apply the individual radii settings to the inner media element */
+  .category-media {
+    border-top-left-radius: var(--radius-tl);
+    border-top-right-radius: var(--radius-tr);
+    /* Bottom corners match block if title is not boxed (which is the default) */
+    border-bottom-left-radius: var(--radius-bl); 
+    border-bottom-right-radius: var(--radius-br);
+  }
+
+  /* Apply bottom radii to the title box, ensuring it matches the card */
+  .title-position-box .category-content {
+    border-bottom-left-radius: var(--radius-bl); 
+    border-bottom-right-radius: var(--radius-br); 
+  }
+{% endif %}
+
+
+.category-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+.category-media {
+  width: 100%;
+  /* Apply aspect ratio variable, overridden by circle case */
+  padding-bottom: var(--media-padding-bottom);
+  position: relative;
+  background-color: #f8f8f8;
+  
+  /* Clip-path and specific radius handling is moved into the case statement for cleaner separation */
+}
+.category-media img,
+.category-media video,
+.category-media iframe,
+.category-media svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* Ensure image/video fills the media container */
+  object-fit: cover; 
+  display: block;
+}
+
+/* --- Category Content Styling and Positioning --- */
+.category-content {
+  position: absolute;
+  color: white;
+  padding: 15px; /* Default padding for all content boxes/overlays */
+  transition: background-color 0.3s ease;
+  width: auto;
+  max-width: 100%;
+  z-index: 20; /* Ensure it's above the media */
+
+  /* Reset position properties */
+  top: auto;
+  bottom: auto;
+  left: auto;
+  right: auto;
+  transform: none; /* Reset transform for positioning */
+}
+
+/* Default (Black Box) Position */
+.title-position-box .category-content {
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  background: var(--overlay-color);
+  
+  /* Bottom radius applied via the specific radius logic above */
+}
+.title-position-box .category-card:hover .category-content {
+  background: rgba(0, 0, 0, {{ overlay_opacity | plus: 0.2 | at_most: 1.0 }}); 
+}
+
+/* --- Overlay Positions (No background box) --- */
+.title-position-top-left .category-content { top: 0; left: 0; padding: 20px; background: none; }
+.title-position-top-right .category-content { top: 0; right: 0; padding: 20px; background: none; }
+.title-position-bottom-left .category-content { bottom: 0; left: 0; padding: 20px; background: none; }
+.title-position-bottom-right .category-content { bottom: 0; right: 0; padding: 20px; background: none; }
+
+/* Centered Positions - Uses transform for perfect centering */
+.title-position-top-center .category-content { 
+  top: 0; left: 50%; transform: translateX(-50%); 
+  background: none; white-space: nowrap; 
+}
+.title-position-middle-center .category-content { 
+  top: 50%; left: 50%; transform: translate(-50%, -50%); 
+  background: none; 
+}
+.title-position-bottom-center .category-content { 
+  bottom: 0; left: 50%; transform: translateX(-50%); 
+  background: none; 
+}
+.title-position-middle-left .category-content { 
+  top: 50%; left: 0; transform: translateY(-50%); 
+  background: none; 
+}
+.title-position-middle-right .category-content { 
+  top: 50%; right: 0; transform: translateY(-50%); 
+  background: none; 
+}
+
+/* Alignment Classes for Block Setting */
+.text-left { text-align: left; }
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+{% endstyle %}
+
+{% liquid 
+  assign grid_class = 'category-grid'
+  assign title_position_class = 'title-position-' | append: section.settings.title_position
+
+  if mobile_layout == 'slider'
+    assign grid_class = grid_class | append: ' mobile-slider'
+  else
+    assign grid_class = grid_class | append: ' mobile-grid'
+  endif
+%}
+
+<div class="category-section-{{ section.id }} {% if full_width_enabled %}section-full-width{% endif %}">
+  {% if section.settings.title != blank %}
+    <h2 class="text-center font-bold">
+      {{ section.settings.title | escape }}
+    </h2>
+  {% endif %}
+
+  <div class="{{ grid_class }}">
+    {% for block in section.blocks %}
+      {% liquid
+        assign category_title = block.settings.title | default: 'Shop Category'
+        assign category_link = block.settings.link
+        assign category_image = block.settings.image
+        assign category_video_url = block.settings.video_url
+
+        assign video_mimetype = 'video/mp4' 
+        if category_video_url contains '.webm' 
+          assign video_mimetype = 'video/webm' 
+        endif
+        
+        assign direct_video_attributes = 'playsinline muted'
+        
+        if enable_video_loop
+          assign direct_video_attributes = direct_video_attributes | append: ' autoplay loop'
+        endif
+        
+        if show_video_controls
+          assign direct_video_attributes = direct_video_attributes | append: ' controls'
+        else
+          assign direct_video_attributes = direct_video_attributes | append: ' controls="false"'
+        endif
+      %}
+
+      <a href="{{ category_link }}" 
+        class="category-card {{ title_position_class }}" 
+        {{ block.shopify_attributes }}>
+
+        <div class="category-media">
+          {% comment %} 
+            PRIORITY: Check for a video link first. 
+          {% endcomment %}
+          {% if category_video_url != blank %}
+            {% comment %} 
+              Check if it's an external YouTube/Vimeo URL or an internal file URL.
+            {% endcomment %}
+            {% if category_video_url contains 'youtube' or category_video_url contains 'vimeo' %}
+              {{ category_video_url 
+                | video_tag: 
+                  image_size: '1024x', 
+                  autoplay: enable_video_loop, 
+                  loop: enable_video_loop, 
+                  muted: true, 
+                  controls: controls_enabled,
+                  class: 'media-video' }}
+            {% else %}
+              {% comment %} Assume it's a direct file URL (like from Shopify files) {% endcomment %}
+              <video 
+                src="{{ category_video_url }}" 
+                {{ direct_video_attributes }} 
+                class="media-video"
+              >
+                {% comment %} Provide source with mimetype for better compatibility {% endcomment %}
+                <source src="{{ category_video_url }}" type="{{ video_mimetype }}">
+                Your browser does not support the video tag.
+              </video>
+            {% endif %}
+          {% elsif category_image != blank %}
+            {{ category_image | image_url: width: 1024 | image_tag: 
+                loading: 'lazy', 
+                widths: '200, 400, 600, 800, 1000', 
+                sizes: '(min-width: 1000px) 30vw, 100vw', 
+                alt: category_title
+            }}
+          {% else %}
+            {{ 'image' | placeholder_svg_tag: 'placeholder-svg' }}
+          {% endif %}
+        </div>
+
+        <div class="category-content text-{{ block.settings.text_alignment | default: 'center' }}">
+          <h3 class="category-title">{{ category_title | escape }}</h3>
+        </div>
+      </a>
+    {% endfor %}
+  </div>
+
+  {% comment %}
+    Mobile Scroll Progress Indicator - MOVED TO BELOW THE GRID
+    The JS below ensures initial progress is calculated on load.
+  {% endcomment %}
+  {% if show_progress and mobile_layout == 'slider' %}
+    <div id="CategoryScrollProgress-{{ section.id }}" class="category-scroll-progress-wrapper">
+      <div class="category-scroll-progress-track">
+        <div class="category-scroll-progress-bar" style="width: 0%;"></div>
+      </div>
+    </div>
+  {% endif %}
+
+  {% if section.blocks.size == 0 %}
+    <div class="text-center p-8 bg-gray-100 border border-dashed border-gray-300 rounded-lg">
+      <p>Configure your Category Blocks in the Theme Editor.</p>
+      <p>The 'Category Media Grid' is an excellent way to direct customers to your main collections.</p>
+    </div>
+  {% endif %}
+</div>
+
+{% comment %}
+  JAVASCRIPT for Scroll Progress Tracking (Mobile Slider Only)
+  NOTE: updateProgress() is called immediately on load to set the initial progress.
+{% endcomment %}
+{% if show_progress and mobile_layout == 'slider' %}
+<script>
+  // Ensure the script only runs once per section instance
+  (function() {
+    const sectionId = '{{ section.id }}';
+    const grid = document.querySelector('.category-section-' + sectionId + ' .category-grid.mobile-slider');
+    const progressBar = document.querySelector('.category-section-' + sectionId + ' .category-scroll-progress-bar');
+    
+    // Pass the Liquid setting into JS
+    const initialProgressPercentage = {{ section.settings.scroll_bar_initial_progress | default: 5 }};
+
+    // Only proceed if elements exist
+    if (grid && progressBar) {
+      
+      // Function to calculate and update progress
+      const updateProgress = () => {
+        // Prevent script from running on desktop view
+        if (window.innerWidth >= 768) return; 
+
+        // grid.scrollLeft: amount scrolled
+        // grid.scrollWidth: total content width
+        // grid.clientWidth: visible area width
+        const scrollAmount = grid.scrollLeft;
+        const maxScroll = grid.scrollWidth - grid.clientWidth;
+
+        if (maxScroll > 0) {
+          // Calculate proportional scroll position (0.0 to 1.0)
+          const proportionalScroll = scrollAmount / maxScroll;
+          
+          // Scale the scroll over the remaining 100% - initialProgressPercentage space
+          const remainingSpace = 100 - initialProgressPercentage;
+          
+          // Progress = Initial + (Proportional Scroll * Remaining Space)
+          let progress = initialProgressPercentage + (proportionalScroll * remainingSpace);
+
+          progressBar.style.width = progress.toFixed(2) + '%';
+        } else {
+          // If no scroll is possible (e.g., only one item), set to 100%
+          progressBar.style.width = '100%';
+        }
+      };
+
+      // Set initial state on load (for initial progress)
+      // Use setTimeout to ensure all block widths are rendered before calculation
+      setTimeout(updateProgress, 100);
+
+      // Attach listener to scroll event
+      grid.addEventListener('scroll', updateProgress);
+
+      // Recalculate on window resize (important for orientation changes)
+      window.addEventListener('resize', updateProgress);
+    }
+  })();
+</script>
+{% endif %}
+
+{% schema %}
+{
+  "name": "Category Media Grid",
+  "tag": "section",
+  "class": "section-category-blocks",
+  "max_blocks": 6,
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Heading",
+      "default": "Shop Our Collections"
+    },
+    {
+      "type": "header",
+      "content": "Desktop Spacing (Premium)"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_desktop",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "px",
+      "default": 40,
+      "label": "Padding Top"
+    },
+    
+    {
+      "type": "range",
+      "id": "padding_bottom_desktop",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "px",
+      "default": 40,
+      "label": "Padding Bottom"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_desktop",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "px",
+      "default": 0,
+      "label": "Padding Left"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_desktop",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "px",
+      "default": 0,
+      "label": "Padding Right"
+    },
+    {
+      "type": "range",
+      "id": "heading_spacing_desktop",
+      "min": 0,
+      "max": 80,
+      "step": 5,
+      "unit": "px",
+      "default": 30,
+      "label": "Heading Spacing (Vertical Gap)",
+      "info": "Vertical gap between the main heading and the category grid."
+    },
+    {
+      "type": "range",
+      "id": "heading_padding_horizontal_desktop",
+      "min": 0,
+      "max": 80,
+      "step": 5,
+      "unit": "px",
+      "default": 0,
+      "label": "Heading Horizontal Padding (Desktop)",
+      "info": "Adds left and right padding to the main section heading element (h2)."
+    },
+    {
+      "type": "header",
+      "content": "Mobile Spacing (Premium)"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "min": 0,
+      "max": 50,
+      "step": 5,
+      "unit": "px",
+      "default": 20,
+      "label": "Padding Top"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "min": 0,
+      "max": 50,
+      "step": 5,
+      "unit": "px",
+      "default": 20,
+      "label": "Padding Bottom"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mobile",
+      "min": 0,
+      "max": 50,
+      "step": 5,
+      "unit": "px",
+      "default": 20,
+      "label": "Padding Left"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mobile",
+      "min": 0,
+      "max": 50,
+      "step": 5,
+      "unit": "px",
+      "default": 20,
+      "label": "Padding Right"
+    },
+    {
+      "type": "range",
+      "id": "heading_spacing_mobile",
+      "min": 0,
+      "max": 50,
+      "step": 5,
+      "unit": "px",
+      "default": 20,
+      "label": "Heading Spacing (Vertical Gap)",
+      "info": "Vertical gap between the main heading and the category grid."
+    },
+    {
+      "type": "range",
+      "id": "heading_padding_horizontal_mobile",
+      "min": 0,
+      "max": 50,
+      "step": 5,
+      "unit": "px",
+      "default": 20,
+      "label": "Heading Horizontal Padding (Mobile)",
+      "info": "Adds left and right padding to the main section heading element (h2)."
+    },
+    {
+      "type": "range",
+      "id": "category_top_spacing_mobile",
+      "min": 0,
+      "max": 50,
+      "step": 5,
+      "unit": "px",
+      "default": 0,
+      "label": "Category Top Spacing (Mobile)",
+      "info": "Vertical space between the section heading and the start of the category cards/grid."
+    },
+    {
+      "type": "range",
+      "id": "progress_bar_top_spacing_mobile",
+      "min": 0,
+      "max": 50,
+      "step": 5,
+      "unit": "px",
+      "default": 10,
+      "label": "Progress Bar Top Spacing (Mobile)",
+      "info": "Vertical space between the bottom of the category cards and the progress bar."
+    },
+    {
+      "type": "header",
+      "content": "Layout and Appearance"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Section Background Color",
+      "default": "#ffffff",
+      "info": "Sets the solid color for the entire section container."
+    },
+    {
+      "type": "checkbox",
+      "id": "full_width_desktop",
+      "label": "Enable full width on desktop",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "section_max_width",
+      "min": 800,
+      "max": 1600,
+      "step": 50,
+      "unit": "px",
+      "default": 1200,
+      "label": "Section Max Width (If not full width)"
+    },
+    {
+      "type": "select",
+      "id": "shape_style",
+      "label": "Block Shape Style",
+      "default": "square",
+      "options": [
+        { "value": "square", "label": "Square (Uses Corner Radius settings)" },
+        { "value": "circle", "label": "Circle (1:1 Aspect Ratio Required)" }
+      ],
+      "info": "Selects a predefined block shape. Note: Circle shape overrides Corner Radius settings."
+    },
+    {
+      "type": "range",
+      "id": "grid_columns",
+      "min": 2,
+      "max": 4,
+      "step": 1,
+      "default": 3,
+      "label": "Columns per row (Desktop)",
+      "info": "Number of categories to display in a single row."
+    },
+    {
+      "type": "select",
+      "id": "grid_columns_mobile",
+      "label": "Columns per row (Mobile Grid)",
+      "default": "2",
+      "options": [
+        { "value": "1", "label": "1 column (Full width)" },
+        { "value": "2", "label": "2 columns (Half width)" }
+      ],
+      "info": "Applies when 'Mobile Layout Type' is set to Grid."
+    },
+    {
+      "type": "range",
+      "id": "gap_horizontal_desktop",
+      "min": 0,
+      "max": 50,
+      "step": 5,
+      "unit": "px",
+      "default": 20,
+      "label": "Horizontal Gap (Between Columns)",
+      "info": "Spacing between category items on the left and right."
+    },
+    {
+      "type": "range",
+      "id": "gap_vertical_desktop",
+      "min": 0,
+      "max": 50,
+      "step": 5,
+      "unit": "px",
+      "default": 20,
+      "label": "Vertical Gap (Between Rows)",
+      "info": "Spacing between category items on the top and bottom."
+    },
+    {
+      "type": "select",
+      "id": "mobile_layout",
+      "label": "Mobile Layout Type",
+      "default": "grid",
+      "options": [
+        { "value": "grid", "label": "Grid (Uses Mobile Column setting)" },
+        { "value": "slider", "label": "Slider (Swipeable carousel)" }
+      ],
+      "info": "Choose how categories are displayed on mobile devices."
+    },
+    {
+      "type": "select",
+      "id": "aspect_ratio",
+      "label": "Media Aspect Ratio",
+      "default": "ratio_4_3",
+      "options": [
+        { "value": "ratio_1_1", "label": "Square (1:1)" },
+        { "value": "ratio_4_3", "label": "Landscape (4:3)" },
+        { "value": "ratio_3_4", "label": "Portrait (3:4)" },
+        { "value": "ratio_16_9", "label": "Wide (16:9)" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "title_position",
+      "label": "Title Position & Style (Global)",
+      "default": "box",
+      "options": [
+        { "value": "box", "label": "Boxed Background (Bottom Full Width)" },
+        { "value": "top-left", "label": "Overlay (Top Left)" },
+        { "value": "top-center", "label": "Overlay (Top Center)" },
+        { "value": "top-right", "label": "Overlay (Top Right)" },
+        { "value": "middle-left", "label": "Overlay (Middle Left)" },
+        { "value": "middle-center", "label": "Overlay (Middle Center)" },
+        { "value": "middle-right", "label": "Overlay (Middle Right)" },
+        { "value": "bottom-left", "label": "Overlay (Bottom Left)" },
+        { "value": "bottom-center", "label": "Overlay (Bottom Center)" },
+        { "value": "bottom-right", "label": "Overlay (Bottom Right)" }
+      ],
+      "info": "Choose to display the title with a dark background box or floating as an overlay on the media."
+    },
+    {
+      "type": "header",
+      "content": "Video Controls"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_video_autoplay_loop",
+      "label": "Enable automatic video playback (autoplay, loop, muted)",
+      "default": true,
+      "info": "If disabled, videos will load statically and require user click."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_video_controls",
+      "label": "Show native video controls (Play/Pause, Timeline)",
+      "default": false,
+      "info": "Controls the visibility of the browser's default video controls. Can be enabled even if autoplay is on."
+    },
+    {
+      "type": "header",
+      "content": "Section Background Images"
+    },
+    {
+      "type": "image_picker",
+      "id": "background_image_desktop",
+      "label": "Background Image (Desktop)",
+      "info": "Optional: Choose an image (e.g., graffiti, texture) to display behind the content grid on larger screens."
+    },
+    {
+      "type": "image_picker",
+      "id": "background_image_mobile",
+      "label": "Background Image (Mobile)",
+      "info": "Optional: Choose a different image for mobile devices, or leave blank to use the desktop image."
+    },
+    {
+      "type": "select",
+      "id": "background_size_mode",
+      "label": "Background Image Scaling",
+      "default": "cover",
+      "options": [
+        { "value": "cover", "label": "Fill (Cover entire area)" },
+        { "value": "contain", "label": "Fit (Show full image)" },
+        { "value": "auto", "label": "Original Size" }
+      ],
+      "info": "How the background image should scale relative to the section size."
+    },
+    {
+      "type": "header",
+      "content": "Mobile Scroll Progress Bar"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_scroll_progress",
+      "label": "Show horizontal scroll progress indicator (Mobile Slider)",
+      "default": true,
+      "info": "Displays a bar showing how far the user has scrolled through the categories."
+    },
+    {
+      "type": "range",
+      "id": "scroll_bar_initial_progress",
+      "label": "Initial Progress Width (when unscrolled)",
+      "min": 0,
+      "max": 20,
+      "step": 1,
+      "unit": "%",
+      "default": 5,
+      "info": "Sets a minimum width for the bar when the carousel is at the start (0% scrolled)."
+    },
+    {
+      "type": "color",
+      "id": "scroll_bar_track_color",
+      "label": "Track Color",
+      "default": "#e0e0e0",
+      "info": "The background color of the progress bar track."
+    },
+    {
+      "type": "color",
+      "id": "scroll_bar_progress_color",
+      "label": "Progress Color",
+      "default": "#000000",
+      "info": "The color of the filling bar that indicates scroll progress."
+    },
+    {
+      "type": "header",
+      "content": "Style Options (Premium)"
+    },
+    {
+      "type": "range",
+      "id": "corner_radius_top_left",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "default": 12,
+      "label": "Corner Radius: Top Left (px)"
+    },
+    {
+      "type": "range",
+      "id": "corner_radius_top_right",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "default": 12,
+      "label": "Corner Radius: Top Right (px)"
+    },
+    {
+      "type": "range",
+      "id": "corner_radius_bottom_left",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "default": 12,
+      "label": "Corner Radius: Bottom Left (px)"
+    },
+    {
+      "type": "range",
+      "id": "corner_radius_bottom_right",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "default": 12,
+      "label": "Corner Radius: Bottom Right (px)"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 60,
+      "label": "Title Box Background Opacity",
+      "info": "Controls the black transparency of the title background when using the 'Boxed' position."
+    },
+    {
+      "type": "header",
+      "content": "Typography Options (Premium)"
+    },
+    {
+      "type": "font_picker",
+      "id": "heading_font",
+      "label": "Heading Font",
+      "default": "helvetica_n7",
+      "info": "Select any font from the Shopify library."
+    },
+    {
+      "type": "range",
+      "id": "heading_font_size_desktop",
+      "min": 20,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "default": 32,
+      "label": "Heading Size (Desktop)"
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Heading Text Color",
+      "default": "#000000",
+      "info": "Sets the color for the main section heading."
+    },
+    {
+      "type": "range",
+      "id": "heading_font_size_mobile",
+      "min": 16,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 24,
+      "label": "Heading Size (Mobile)"
+    },
+    {
+      "type": "font_picker",
+      "id": "category_title_font",
+      "label": "Category Title Font",
+      "default": "helvetica_n4",
+      "info": "Select any font from the Shopify library."
+    },
+    {
+      "type": "range",
+      "id": "category_title_size_desktop",
+      "min": 10,
+      "max": 40,
+      "step": 1,
+      "unit": "px",
+      "default": 20,
+      "label": "Category Title Size (Desktop)"
+    },
+    {
+      "type": "range",
+      "id": "category_title_size_mobile",
+      "min": 10,
+      "max": 30,
+      "step": 1,
+      "unit": "px",
+      "default": 18,
+      "label": "Category Title Size (Mobile)"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_text_shadow",
+      "label": "Enable text shadow on titles",
+      "default": true,
+      "info": "Adds a drop shadow to category titles for better visibility over images."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "category",
+      "name": "Category Item",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Category Title",
+          "default": "New Arrivals"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Category Link",
+          "info": "Links to the collection, product, or page."
+        },
+        {
+          "type": "select",
+          "id": "text_alignment",
+          "label": "Text Alignment (Inside Title Area)",
+          "default": "center",
+          "options": [
+            { "value": "left", "label": "Left" },
+            { "value": "center", "label": "Center" },
+            { "value": "right", "label": "Right" }
+          ],
+          "info": "Alignment for the category title text."
+        },
+        {
+          "type": "header",
+          "content": "Media Configuration"
+        },
+        {
+          "type": "url",
+          "id": "video_url",
+          "label": "Video URL (External or Shopify File)",
+          "info": "Paste a YouTube/Vimeo link OR a direct file link (e.g., from Shopify's Files section). If a video is provided, it will be displayed instead of the image."
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Fallback Image",
+          "info": "Displays if no video URL is provided."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Category Media Grid",
+      "category": "Collection",
+      "blocks": [
+        { "type": "category" },
+        { "type": "category" },
+        { "type": "category" }
+      ]
+    }
+  ]
+}
+{% endschema %}

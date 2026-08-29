@@ -1,0 +1,486 @@
+{% doc %}
+  @prompt
+    create a block that inherits the description metafield and has the options of the material and fit in it and material and fit optons should be shown and can be able to turn off and turn on , there should be heading of the description also and give me the options of the accordions and give me the option for the accordion for 
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-product-details-{{ ai_gen_id }} {
+    padding: 20px 0;
+  }
+
+  .ai-product-details__description-section-{{ ai_gen_id }} {
+    margin-bottom: 24px;
+  }
+
+  .ai-product-details__heading-{{ ai_gen_id }} {
+    font-size: {{ block.settings.heading_size }}px;
+    font-weight: 600;
+    color: {{ block.settings.heading_color }};
+    margin-bottom: 12px;
+    text-transform: {{ block.settings.heading_text_transform }};
+  }
+
+  .ai-product-details__description-{{ ai_gen_id }} {
+    line-height: 1.6;
+    color: {{ block.settings.text_color }};
+  }
+
+  .ai-product-details__divider-{{ ai_gen_id }} {
+    height: 1px;
+    background-color: {{ block.settings.divider_color }};
+    margin: 16px 0;
+  }
+
+  .ai-product-details__accordion-{{ ai_gen_id }} {
+    border-top: 1px solid {{ block.settings.accordion_border_color }};
+  }
+
+  .ai-product-details__accordion-item-{{ ai_gen_id }} {
+    border-bottom: 1px solid {{ block.settings.accordion_border_color }};
+  }
+
+  .ai-product-details__accordion-button-{{ ai_gen_id }} {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    font-size: {{ block.settings.label_size }}px;
+    font-weight: 600;
+    color: {{ block.settings.label_color }};
+    text-transform: {{ block.settings.label_text_transform }};
+  }
+
+  .ai-product-details__accordion-icon-{{ ai_gen_id }} {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+  }
+
+  .ai-product-details__accordion-icon-{{ ai_gen_id }} svg {
+    width: 100%;
+    height: 100%;
+    stroke: {{ block.settings.label_color }};
+  }
+
+  .ai-product-details__accordion-button-{{ ai_gen_id }}[aria-expanded="true"] .ai-product-details__accordion-icon-{{ ai_gen_id }} {
+    transform: rotate(180deg);
+  }
+
+  .ai-product-details__accordion-content-{{ ai_gen_id }} {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+
+  .ai-product-details__accordion-content-{{ ai_gen_id }}.active {
+    max-height: 500px;
+  }
+
+  .ai-product-details__accordion-inner-{{ ai_gen_id }} {
+    padding-bottom: 16px;
+    font-size: {{ block.settings.value_size }}px;
+    color: {{ block.settings.value_color }};
+    line-height: 1.5;
+  }
+
+  .ai-product-details__option-{{ ai_gen_id }} {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 0;
+  }
+
+  .ai-product-details__option-label-{{ ai_gen_id }} {
+    font-weight: 600;
+    font-size: {{ block.settings.label_size }}px;
+    color: {{ block.settings.label_color }};
+    text-transform: {{ block.settings.label_text_transform }};
+  }
+
+  .ai-product-details__option-value-{{ ai_gen_id }} {
+    font-size: {{ block.settings.value_size }}px;
+    color: {{ block.settings.value_color }};
+    line-height: 1.5;
+  }
+{% endstyle %}
+
+<product-details-{{ ai_gen_id }} class="ai-product-details-{{ ai_gen_id }}" {{ block.shopify_attributes }}>
+  {% if block.settings.show_description_heading or block.settings.description_metafield != blank or product.description != blank %}
+    <div class="ai-product-details__description-section-{{ ai_gen_id }}">
+      {% if block.settings.show_description_heading %}
+        <h3 class="ai-product-details__heading-{{ ai_gen_id }}">
+          {{ block.settings.description_heading }}
+        </h3>
+      {% endif %}
+      
+      {% if block.settings.description_metafield != blank %}
+        <div class="ai-product-details__description-{{ ai_gen_id }}">
+          {{ product.metafields[block.settings.description_metafield] }}
+        </div>
+      {% elsif product.description != blank %}
+        <div class="ai-product-details__description-{{ ai_gen_id }}">
+          {{ product.description }}
+        </div>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  {% assign show_options = false %}
+  {% if block.settings.show_material or block.settings.show_fit %}
+    {% assign show_options = true %}
+  {% endif %}
+
+  {% if block.settings.show_divider and show_options %}
+    <div class="ai-product-details__divider-{{ ai_gen_id }}"></div>
+  {% endif %}
+
+  {% if block.settings.use_accordion %}
+    <div class="ai-product-details__accordion-{{ ai_gen_id }}">
+      {% if block.settings.show_material %}
+        <div class="ai-product-details__accordion-item-{{ ai_gen_id }}">
+          <button
+            class="ai-product-details__accordion-button-{{ ai_gen_id }}"
+            aria-expanded="{% if block.settings.material_open_default %}true{% else %}false{% endif %}"
+            data-accordion-trigger
+          >
+            <span>{{ block.settings.material_label }}</span>
+            <span class="ai-product-details__accordion-icon-{{ ai_gen_id }}">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </span>
+          </button>
+          <div class="ai-product-details__accordion-content-{{ ai_gen_id }} {% if block.settings.material_open_default %}active{% endif %}" data-accordion-content>
+            <div class="ai-product-details__accordion-inner-{{ ai_gen_id }}">
+              {% if block.settings.material_metafield != blank %}
+                {{ product.metafields[block.settings.material_metafield] }}
+              {% else %}
+                {{ block.settings.material_default_text }}
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% endif %}
+
+      {% if block.settings.show_fit %}
+        <div class="ai-product-details__accordion-item-{{ ai_gen_id }}">
+          <button
+            class="ai-product-details__accordion-button-{{ ai_gen_id }}"
+            aria-expanded="{% if block.settings.fit_open_default %}true{% else %}false{% endif %}"
+            data-accordion-trigger
+          >
+            <span>{{ block.settings.fit_label }}</span>
+            <span class="ai-product-details__accordion-icon-{{ ai_gen_id }}">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </span>
+          </button>
+          <div class="ai-product-details__accordion-content-{{ ai_gen_id }} {% if block.settings.fit_open_default %}active{% endif %}" data-accordion-content>
+            <div class="ai-product-details__accordion-inner-{{ ai_gen_id }}">
+              {% if block.settings.fit_metafield != blank %}
+                {{ product.metafields[block.settings.fit_metafield] }}
+              {% else %}
+                {{ block.settings.fit_default_text }}
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  {% else %}
+    <div class="ai-product-details__options-{{ ai_gen_id }}">
+      {% if block.settings.show_material %}
+        <div class="ai-product-details__option-{{ ai_gen_id }}">
+          <div class="ai-product-details__option-label-{{ ai_gen_id }}">
+            {{ block.settings.material_label }}
+          </div>
+          <div class="ai-product-details__option-value-{{ ai_gen_id }}">
+            {% if block.settings.material_metafield != blank %}
+              {{ product.metafields[block.settings.material_metafield] }}
+            {% else %}
+              {{ block.settings.material_default_text }}
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+
+      {% if block.settings.show_fit %}
+        <div class="ai-product-details__option-{{ ai_gen_id }}">
+          <div class="ai-product-details__option-label-{{ ai_gen_id }}">
+            {{ block.settings.fit_label }}
+          </div>
+          <div class="ai-product-details__option-value-{{ ai_gen_id }}">
+            {% if block.settings.fit_metafield != blank %}
+              {{ product.metafields[block.settings.fit_metafield] }}
+            {% else %}
+              {{ block.settings.fit_default_text }}
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  {% endif %}
+</product-details-{{ ai_gen_id }}>
+
+<script>
+  (function() {
+    class ProductDetails{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+      }
+
+      connectedCallback() {
+        this.accordionTriggers = this.querySelectorAll('[data-accordion-trigger]');
+        this.setupAccordions();
+      }
+
+      setupAccordions() {
+        this.accordionTriggers.forEach((trigger) => {
+          trigger.addEventListener('click', () => {
+            const content = trigger.nextElementSibling;
+            const isExpanded = trigger.getAttribute('aria-expanded') === 'true';
+
+            trigger.setAttribute('aria-expanded', !isExpanded);
+            content.classList.toggle('active');
+          });
+        });
+      }
+    }
+
+    customElements.define('product-details-{{ ai_gen_id }}', ProductDetails{{ ai_gen_id }});
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Product details",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Description"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_description_heading",
+      "label": "Show heading",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "description_heading",
+      "label": "Heading",
+      "default": "Description"
+    },
+    {
+      "type": "text",
+      "id": "description_metafield",
+      "label": "Description metafield",
+      "info": "Enter metafield key (e.g., custom.description). Leave empty to use product description."
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "checkbox",
+      "id": "use_accordion",
+      "label": "Use accordion layout",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_divider",
+      "label": "Show divider",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Material"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_material",
+      "label": "Show material",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "material_label",
+      "label": "Label",
+      "default": "Material"
+    },
+    {
+      "type": "text",
+      "id": "material_metafield",
+      "label": "Material metafield",
+      "info": "Enter metafield key (e.g., custom.material)"
+    },
+    {
+      "type": "text",
+      "id": "material_default_text",
+      "label": "Default text",
+      "default": "Not specified",
+      "info": "Shown when metafield is empty"
+    },
+    {
+      "type": "checkbox",
+      "id": "material_open_default",
+      "label": "Open by default",
+      "default": false,
+      "info": "Only applies when accordion layout is enabled"
+    },
+    {
+      "type": "header",
+      "content": "Fit"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_fit",
+      "label": "Show fit",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "fit_label",
+      "label": "Label",
+      "default": "Fit"
+    },
+    {
+      "type": "text",
+      "id": "fit_metafield",
+      "label": "Fit metafield",
+      "info": "Enter metafield key (e.g., custom.fit)"
+    },
+    {
+      "type": "text",
+      "id": "fit_default_text",
+      "label": "Default text",
+      "default": "Not specified",
+      "info": "Shown when metafield is empty"
+    },
+    {
+      "type": "checkbox",
+      "id": "fit_open_default",
+      "label": "Open by default",
+      "default": false,
+      "info": "Only applies when accordion layout is enabled"
+    },
+    {
+      "type": "header",
+      "content": "Style"
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Heading color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "heading_size",
+      "min": 14,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "label": "Heading size",
+      "default": 18
+    },
+    {
+      "type": "select",
+      "id": "heading_text_transform",
+      "label": "Heading text case",
+      "options": [
+        {
+          "value": "none",
+          "label": "Default"
+        },
+        {
+          "value": "uppercase",
+          "label": "Uppercase"
+        }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "color",
+      "id": "divider_color",
+      "label": "Divider color",
+      "default": "#e6e6e6"
+    },
+    {
+      "type": "color",
+      "id": "accordion_border_color",
+      "label": "Accordion border color",
+      "default": "#e6e6e6"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Description text color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "label_color",
+      "label": "Label color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "label_size",
+      "min": 12,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "label": "Label size",
+      "default": 14
+    },
+    {
+      "type": "select",
+      "id": "label_text_transform",
+      "label": "Label text case",
+      "options": [
+        {
+          "value": "none",
+          "label": "Default"
+        },
+        {
+          "value": "uppercase",
+          "label": "Uppercase"
+        }
+      ],
+      "default": "uppercase"
+    },
+    {
+      "type": "color",
+      "id": "value_color",
+      "label": "Value color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "value_size",
+      "min": 12,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Value size",
+      "default": 14
+    }
+  ],
+  "presets": [
+    {
+      "name": "Product details"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,177 @@
+{% schema %}
+{
+  "name": "Premium Stock Alert",
+  "settings": [
+    {
+      "type": "text",
+      "id": "message_text_prefix",
+      "label": "Message Prefix",
+      "default": "Selling fast! Only"
+    },
+    {
+      "type": "text",
+      "id": "message_text_suffix",
+      "label": "Message Suffix",
+      "default": "left in stock!"
+    },
+    {
+      "type": "range",
+      "id": "min_stock",
+      "min": 1,
+      "max": 10,
+      "step": 1,
+      "label": "Minimum Random Stock",
+      "default": 3
+    },
+    {
+      "type": "range",
+      "id": "max_stock",
+      "min": 11,
+      "max": 50,
+      "step": 1,
+      "label": "Maximum Random Stock",
+      "default": 12
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text Color",
+      "default": "#b91c1c"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Background Color",
+      "default": "#fef2f2"
+    },
+    {
+      "type": "color",
+      "id": "icon_color",
+      "label": "Icon/Pulse Color",
+      "default": "#dc2626"
+    },
+    {
+      "type": "range",
+      "id": "font_size",
+      "min": 12,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "label": "Font Size",
+      "default": 14
+    }
+  ],
+  "presets": [
+    {
+      "name": "Premium Stock Alert",
+      "category": "Product"
+    }
+  ]
+}
+{% endschema %}
+
+<div class="stock-alert-container">
+  <div class="stock-alert-box">
+    <span class="pulse-container">
+      <span class="pulse-ring"></span>
+      <span class="pulse-dot"></span>
+    </span>
+    
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="fire-icon" viewBox="0 0 16 16">
+      <path d="M8 16c3.314 0 6-2.686 6-6 0-3.314-2.686-6-6-6-3.314 0-6 2.686-6 6 0 3.314 2.686 6 6 6zM8 1.5a.5.5 0 0 1 .5.5v13a.5.5 0 0 1-1 0v-13a.5.5 0 0 1 .5-.5z"/> 
+      <path d="M8 0a.5.5 0 0 1 .5.5v1.293l.854-.853a.5.5 0 0 1 .707.707L9.207 2.5H10.5a.5.5 0 0 1 0 1h-1.293l.853.854a.5.5 0 0 1-.707.707L8.5 4.293V5.5a.5.5 0 0 1-1 0V4.293l-.854.853a.5.5 0 0 1-.707-.707L6.793 3.5H5.5a.5.5 0 0 1 0-1h1.293l-.853-.854a.5.5 0 0 1 .707-.707L7.5 1.793V.5A.5.5 0 0 1 8 0z" fill="none" stroke="currentColor"/> 
+       <path d="M5.002 5.5a.5.5 0 0 1 .354.146l.853.854V5.5a.5.5 0 0 1 1 0v.999l.854-.853a.5.5 0 1 1 .707.707L8 7.207l.854-.853a.5.5 0 1 1 .707.707L8.707 7.914l.853.854a.5.5 0 0 1-.707.707L8 8.621l-.854.854a.5.5 0 0 1-.707-.707l.854-.854-.854-.854a.5.5 0 0 1 .708-.707z" />
+    </svg>
+
+    <p class="stock-text">
+      {{ section.settings.message_text_prefix }} 
+      <strong id="random-stock-count-{{ section.id }}">...</strong> 
+      {{ section.settings.message_text_suffix }}
+    </p>
+  </div>
+</div>
+
+<style>
+  .stock-alert-container {
+    display: flex;
+    justify-content: flex-start; 
+    margin: 10px 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  .stock-alert-box {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 50px; 
+    background-color: {{ section.settings.bg_color }};
+    color: {{ section.settings.text_color }};
+    font-size: {{ section.settings.font_size }}px;
+    font-weight: 500;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
+    border: 1px solid {{ section.settings.icon_color | color_modify: 'alpha', 0.2 }};
+  }
+
+  .stock-text strong {
+    font-weight: 700;
+  }
+
+  /* Fire Icon Styling */
+  .fire-icon {
+    color: {{ section.settings.icon_color }};
+    width: 1.2em;
+    height: 1.2em;
+  }
+
+  /* Pulse Animation Styling */
+  .pulse-container {
+    position: relative;
+    width: 10px;
+    height: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .pulse-dot {
+    width: 6px;
+    height: 6px;
+    background-color: {{ section.settings.icon_color }};
+    border-radius: 50%;
+    z-index: 2;
+  }
+
+  .pulse-ring {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: {{ section.settings.icon_color }};
+    border-radius: 50%;
+    opacity: 0.6;
+    animation: pulse-animation 2s infinite cubic-bezier(0.455, 0.03, 0.515, 0.955);
+    z-index: 1;
+  }
+
+  @keyframes pulse-animation {
+    0% { transform: scale(1); opacity: 0.7; }
+    100% { transform: scale(3); opacity: 0; }
+  }
+</style>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    // 1. Get settings
+    var minStock = {{ section.settings.min_stock }};
+    var maxStock = {{ section.settings.max_stock }};
+    
+    // 2. Generate Random Number
+    var randomStock = Math.floor(Math.random() * (maxStock - minStock + 1)) + minStock;
+
+    // 3. Insert into the HTML using unique ID
+    var stockElement = document.getElementById("random-stock-count-{{ section.id }}");
+    if(stockElement) {
+      stockElement.innerText = randomStock;
+    }
+  });
+</script>

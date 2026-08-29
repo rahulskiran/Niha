@@ -1,0 +1,238 @@
+{% comment %}
+  Announcement Bar Section
+  - Includes settings for text, font size (desktop & mobile), scrolling behavior, and speed.
+  - UPDATED: Now uses a "Seamless Loop" technique by duplicating text to remove gaps.
+{% endcomment %}
+
+{%- style -%}
+  .announcement-bar-{{ section.id }} {
+    background-color: {{ section.settings.bg_color }};
+    color: {{ section.settings.text_color }};
+    font-size: {{ section.settings.text_size }}px;
+    padding: 10px 0;
+    position: relative;
+    overflow: hidden;
+    line-height: 1.5;
+    z-index: 50;
+  }
+
+  .announcement-bar-{{ section.id }} a {
+    color: {{ section.settings.text_color }};
+    text-decoration: underline;
+  }
+
+  /* Static State (When scrolling is off) */
+  .announcement-bar__content-static {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 0 20px;
+    box-sizing: border-box;
+    text-align: center;
+  }
+
+  /* Scrolling State Wrapper */
+  .announcement-bar__marquee-window {
+    width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+  }
+
+  .announcement-bar__marquee-track {
+    display: flex;
+    flex-wrap: nowrap;
+    width: fit-content;
+    will-change: transform;
+    animation: marquee-{{ section.id }} {{ section.settings.scroll_speed }}s linear infinite;
+  }
+
+  /* The sets of repeated text */
+  .announcement-bar__item-set {
+    display: flex;
+    flex-wrap: nowrap;
+    padding: 0;
+    margin: 0;
+  }
+
+  .announcement-bar__message {
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    padding: 0 20px; /* Space between repeated messages */
+  }
+
+  /* Force rich text paragraphs to be inline */
+  .announcement-bar__message p, 
+  .announcement-bar__content-static p {
+    margin: 0;
+    padding: 0;
+    display: inline-block;
+  }
+
+  .announcement-bar__message br,
+  .announcement-bar__content-static br {
+    display: none;
+  }
+
+  /* Pause on hover */
+  .announcement-bar-{{ section.id }}:hover .announcement-bar__marquee-track {
+    animation-play-state: paused;
+  }
+
+  @keyframes marquee-{{ section.id }} {
+    0% {
+      transform: translate3d(0, 0, 0);
+    }
+    100% {
+      /* Move exactly 50% left. Because we have 2 identical sets, 
+         when Set 1 moves out, Set 2 is in the exact position Set 1 started. 
+         This creates the invisible loop. */
+      transform: translate3d(-50%, 0, 0);
+    }
+  }
+
+  /* --- MOBILE TEXT SIZE OVERRIDE --- */
+  @media screen and (max-width: 749px) {
+    .announcement-bar-{{ section.id }} {
+      font-size: {{ section.settings.mobile_text_size }}px;
+    }
+  }
+{%- endstyle -%}
+
+{%- if section.settings.show_announcement -%}
+  <div class="announcement-bar-{{ section.id }}" role="region" aria-label="Announcement">
+    
+    {%- if section.settings.enable_scroll -%}
+      <!-- SCROLLING MODE: Seamless Infinite Loop -->
+      <div class="announcement-bar__marquee-window">
+        <div class="announcement-bar__marquee-track">
+          
+          {%- comment -%} 
+            We generate TWO sets of repeated text. 
+            The animation slides the whole track by 50% (the width of one set).
+          {%- endcomment -%}
+          
+          {%- for set in (1..2) -%}
+            <div class="announcement-bar__item-set">
+              {%- comment -%} Repeat the message 15 times to ensure it fills any screen width {%- endcomment -%}
+              {%- for i in (1..15) -%}
+                <div class="announcement-bar__message">
+                  {%- if section.settings.text != blank -%}
+                    {{ section.settings.text }}
+                  {%- else -%}
+                    Welcome to our store
+                  {%- endif -%}
+                </div>
+              {%- endfor -%}
+            </div>
+          {%- endfor -%}
+
+        </div>
+      </div>
+
+    {%- else -%}
+      <!-- STATIC MODE: Centered Single Text -->
+      <div class="announcement-bar__content-static">
+        {%- if section.settings.text != blank -%}
+          {{ section.settings.text }}
+        {%- else -%}
+          Welcome to our store
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Announcement Bar",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Visibility"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_announcement",
+      "label": "Show announcement",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "Text",
+      "default": "<p>Welcome to our store</p>"
+    },
+    {
+      "type": "header",
+      "content": "Appearance"
+    },
+    {
+      "type": "range",
+      "id": "text_size",
+      "min": 12,
+      "max": 36,
+      "step": 1,
+      "unit": "px",
+      "label": "Desktop Text size",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "mobile_text_size",
+      "min": 10,
+      "max": 30,
+      "step": 1,
+      "unit": "px",
+      "label": "Mobile Text size",
+      "default": 12
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Background color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "header",
+      "content": "Scrolling Options"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_scroll",
+      "label": "Enable scrolling text",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "scroll_speed",
+      "min": 10,
+      "max": 100,
+      "step": 2,
+      "unit": "s",
+      "label": "Scroll speed (duration)",
+      "info": "Because the text is repeated many times, you may need a higher number (slower speed) than before.",
+      "default": 40
+    }
+  ],
+  "presets": [
+    {
+      "name": "Custom Announcement Bar"
+    }
+  ]
+}
+{% endschema %}

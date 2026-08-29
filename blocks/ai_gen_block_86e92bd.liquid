@@ -1,0 +1,269 @@
+{% doc %}
+  @prompt
+    create a block thats display the this many people have viewed this product and in the hours and should be resposive, give me the colour options for the evetyting
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-product-views-{{ ai_gen_id }} {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: {{ block.settings.padding }}px;
+    background-color: {{ block.settings.background_color }};
+    border-radius: {{ block.settings.border_radius }}px;
+    width: fit-content;
+    max-width: 100%;
+    {% if block.settings.border_width > 0 %}
+      border: {{ block.settings.border_width }}px solid {{ block.settings.border_color }};
+    {% endif %}
+  }
+
+  .ai-product-views-icon-{{ ai_gen_id }} {
+    flex-shrink: 0;
+    width: {{ block.settings.icon_size }}px;
+    height: {{ block.settings.icon_size }}px;
+    color: {{ block.settings.icon_color }};
+  }
+
+  .ai-product-views-text-{{ ai_gen_id }} {
+    color: {{ block.settings.text_color }};
+    font-size: {{ block.settings.text_size }}px;
+    line-height: 1.4;
+    margin: 0;
+  }
+
+  .ai-product-views-count-{{ ai_gen_id }} {
+    font-weight: 600;
+    color: {{ block.settings.count_color }};
+  }
+
+  @media screen and (max-width: 749px) {
+    .ai-product-views-{{ ai_gen_id }} {
+      padding: {{ block.settings.padding | times: 0.8 }}px;
+    }
+
+    .ai-product-views-icon-{{ ai_gen_id }} {
+      width: {{ block.settings.icon_size | times: 0.9 }}px;
+      height: {{ block.settings.icon_size | times: 0.9 }}px;
+    }
+
+    .ai-product-views-text-{{ ai_gen_id }} {
+      font-size: {{ block.settings.text_size | times: 0.9 }}px;
+    }
+  }
+{% endstyle %}
+
+<product-views-{{ ai_gen_id }} class="ai-product-views-{{ ai_gen_id }}" {{ block.shopify_attributes }}>
+  <svg class="ai-product-views-icon-{{ ai_gen_id }}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+    <circle cx="12" cy="12" r="3"></circle>
+  </svg>
+  <p class="ai-product-views-text-{{ ai_gen_id }}">
+    <span class="ai-product-views-count-{{ ai_gen_id }}" data-view-count>{{ block.settings.min_views }}</span>
+    {{ block.settings.text_before_hours }}
+    <span class="ai-product-views-count-{{ ai_gen_id }}" data-hours>{{ block.settings.hours }}</span>
+    {{ block.settings.text_after_hours }}
+  </p>
+</product-views-{{ ai_gen_id }}>
+
+<script>
+  (function() {
+    class ProductViews{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+        this.minViews = {{ block.settings.min_views }};
+        this.maxViews = {{ block.settings.max_views }};
+        this.hours = {{ block.settings.hours }};
+        this.updateInterval = {{ block.settings.update_interval }};
+      }
+
+      connectedCallback() {
+        this.viewCountElement = this.querySelector('[data-view-count]');
+        this.generateRandomViews();
+        
+        if (this.updateInterval > 0) {
+          this.startUpdating();
+        }
+      }
+
+      generateRandomViews() {
+        const randomViews = Math.floor(Math.random() * (this.maxViews - this.minViews + 1)) + this.minViews;
+        if (this.viewCountElement) {
+          this.viewCountElement.textContent = randomViews;
+        }
+      }
+
+      startUpdating() {
+        this.intervalId = setInterval(() => {
+          this.generateRandomViews();
+        }, this.updateInterval * 1000);
+      }
+
+      disconnectedCallback() {
+        if (this.intervalId) {
+          clearInterval(this.intervalId);
+        }
+      }
+    }
+
+    customElements.define('product-views-{{ ai_gen_id }}', ProductViews{{ ai_gen_id }});
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Product views counter",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "range",
+      "id": "min_views",
+      "min": 1,
+      "max": 100,
+      "step": 1,
+      "label": "Minimum views",
+      "default": 15
+    },
+    {
+      "type": "range",
+      "id": "max_views",
+      "min": 10,
+      "max": 500,
+      "step": 10,
+      "label": "Maximum views",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "hours",
+      "min": 1,
+      "max": 48,
+      "step": 1,
+      "label": "Time period",
+      "unit": "hr",
+      "default": 24
+    },
+    {
+      "type": "text",
+      "id": "text_before_hours",
+      "label": "Text before hours",
+      "default": "people have viewed this product in the last"
+    },
+    {
+      "type": "text",
+      "id": "text_after_hours",
+      "label": "Text after hours",
+      "default": "hours"
+    },
+    {
+      "type": "range",
+      "id": "update_interval",
+      "min": 0,
+      "max": 60,
+      "step": 5,
+      "label": "Update interval",
+      "unit": "s",
+      "default": 0,
+      "info": "Set to 0 to disable auto-update"
+    },
+    {
+      "type": "header",
+      "content": "Style"
+    },
+    {
+      "type": "range",
+      "id": "text_size",
+      "min": 10,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "label": "Text size",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "icon_size",
+      "min": 12,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "label": "Icon size",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "padding",
+      "min": 0,
+      "max": 30,
+      "step": 2,
+      "unit": "px",
+      "label": "Padding",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "border_radius",
+      "min": 0,
+      "max": 30,
+      "step": 2,
+      "unit": "px",
+      "label": "Border radius",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "border_width",
+      "min": 0,
+      "max": 5,
+      "step": 1,
+      "unit": "px",
+      "label": "Border width",
+      "default": 0
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background",
+      "default": "#f5f5f5"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "count_color",
+      "label": "Count numbers",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "icon_color",
+      "label": "Icon",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "border_color",
+      "label": "Border",
+      "default": "#e6e6e6"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Product views counter"
+    }
+  ]
+}
+{% endschema %}

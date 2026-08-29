@@ -1,0 +1,513 @@
+{% schema %}
+{
+  "name": "Bike Accessories Grid",
+  "settings": [
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background color",
+      "default": "#ffffff"
+    },
+
+    /* ===== Desktop Padding ===== */
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Desktop Padding Top",
+      "default": 40,
+      "min": 0,
+      "max": 200,
+      "step": 5,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Desktop Padding Bottom",
+      "default": 40,
+      "min": 0,
+      "max": 200,
+      "step": 5,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "label": "Desktop Padding Left",
+      "default": 20,
+      "min": 0,
+      "max": 200,
+      "step": 5,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "label": "Desktop Padding Right",
+      "default": 20,
+      "min": 0,
+      "max": 200,
+      "step": 5,
+      "unit": "px"
+    },
+
+    /* ===== Mobile Padding ===== */
+    {
+      "type": "range",
+      "id": "mobile_padding_top",
+      "label": "Mobile Padding Top",
+      "default": 20,
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "mobile_padding_bottom",
+      "label": "Mobile Padding Bottom",
+      "default": 20,
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "mobile_padding_left",
+      "label": "Mobile Padding Left",
+      "default": 10,
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "mobile_padding_right",
+      "label": "Mobile Padding Right",
+      "default": 10,
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "px"
+    },
+
+    {
+      "type": "range",
+      "id": "margin_top",
+      "label": "Margin Top",
+      "default": 0,
+      "min": 0,
+      "max": 200,
+      "step": 5,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "margin_bottom",
+      "label": "Margin Bottom",
+      "default": 0,
+      "min": 0,
+      "max": 200,
+      "step": 5,
+      "unit": "px"
+    },
+
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#333333"
+    },
+
+    /* ===== Vertical Gap ===== */
+    {
+      "type": "range",
+      "id": "vertical_gap",
+      "label": "Vertical Gap Between Boxes",
+      "default": 20,
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "px"
+    },
+
+    /* ===== Progress Bar ===== */
+    {
+      "type": "checkbox",
+      "id": "show_progress_bar",
+      "label": "Show Progress Bar on Mobile",
+      "default": true
+    },
+    {
+      "type": "color",
+      "id": "progress_bg",
+      "label": "Progress Bar Background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "progress_fill",
+      "label": "Progress Fill Color",
+      "default": "#ff0000"
+    },
+    {
+      "type": "range",
+      "id": "progress_height",
+      "label": "Progress Bar Height",
+      "default": 3,
+      "min": 1,
+      "max": 10,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "progress_margin_left",
+      "label": "Progress Bar Margin Left",
+      "default": 20,
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "progress_margin_right",
+      "label": "Progress Bar Margin Right",
+      "default": 20,
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "item",
+      "name": "Accessory Box",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Upload Image"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Accessory Name"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link URL (optional)"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_discount",
+          "label": "Show Discount Label",
+          "default": false
+        },
+        {
+          "type": "text",
+          "id": "discount_text",
+          "label": "Discount Label Text",
+          "default": "20% OFF"
+        },
+        {
+          "type": "color",
+          "id": "discount_bg",
+          "label": "Discount Label Background",
+          "default": "#ff0000"
+        },
+        {
+          "type": "color",
+          "id": "discount_color",
+          "label": "Discount Label Text Color",
+          "default": "#ffffff"
+        },
+        {
+          "type": "range",
+          "id": "discount_size",
+          "label": "Discount Font Size",
+          "default": 14,
+          "min": 10,
+          "max": 30,
+          "step": 1,
+          "unit": "px"
+        }
+      ]
+    }
+  ],
+  "max_blocks": 12,
+  "presets": [
+    {
+      "name": "Bike Accessories Grid",
+      "category": "Custom"
+    }
+  ]
+}
+{% endschema %}
+
+<section 
+  id="bike-accessories-{{ section.id }}"
+  class="bike-accessories-section"
+  style="
+    background: {{ section.settings.background_color }};
+    margin-top: {{ section.settings.margin_top }}px;
+    margin-bottom: {{ section.settings.margin_bottom }}px;
+    padding-top: {{ section.settings.padding_top }}px;
+    padding-bottom: {{ section.settings.padding_bottom }}px;
+    padding-left: {{ section.settings.padding_left }}px;
+    padding-right: {{ section.settings.padding_right }}px;
+  "
+>
+  <div class="bike-accessories-wrapper" style="row-gap: {{ section.settings.vertical_gap }}px;">
+    {% for block in section.blocks %}
+      <div class="bike-box fade-in-element" {{ block.shopify_attributes }} style="margin-bottom: {{ section.settings.vertical_gap }}px;">
+        {% if block.settings.link != blank %}
+          <a href="{{ block.settings.link }}" style="text-decoration: none; color: inherit;">
+        {% endif %}
+        
+        {% if block.settings.image %}
+          <div class="bike-image">
+            <img src="{{ block.settings.image | img_url: '800x' }}" 
+                 alt="{{ block.settings.title }}" />
+            {% if block.settings.show_discount %}
+              <span class="discount-label"
+                style="
+                  background: {{ block.settings.discount_bg }}; 
+                  color: {{ block.settings.discount_color }};
+                  font-size: {{ block.settings.discount_size }}px;
+                ">
+                  {{ block.settings.discount_text }}
+              </span>
+            {% endif %}
+          </div>
+        {% endif %}
+        <p style="color: {{ section.settings.text_color }};">{{ block.settings.title }}</p>
+        
+        {% if block.settings.link != blank %}
+          </a>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+
+  {% if section.settings.show_progress_bar %}
+  <div class="scroll-progress" 
+       style="
+         background: {{ section.settings.progress_bg }}; 
+         height: {{ section.settings.progress_height }}px;
+         margin-left: {{ section.settings.progress_margin_left }}px;
+         margin-right: {{ section.settings.progress_margin_right }}px;
+       ">
+    <div class="progress-bar" style="background: {{ section.settings.progress_fill }}; height: {{ section.settings.progress_height }}px;"></div>
+  </div>
+  {% endif %}
+</section>
+
+<style>
+.bike-accessories-wrapper {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  column-gap: 20px;
+}
+.bike-box {
+  text-align: center;
+  position: relative;
+}
+.bike-image {
+  display: inline-block;
+  overflow: hidden;
+  border-radius: 12px;
+  position: relative;
+  width: 100%;
+}
+.bike-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto 10px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.bike-image img:hover {
+  transform: scale(1.05);
+  box-shadow: 0px 6px 20px rgba(0,0,0,0.2);
+}
+.discount-label {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+/* Progress bar style */
+.scroll-progress {
+  display: none;
+  width: auto;
+  margin-top: 10px;
+  position: relative;
+  border-radius: 50px;
+  overflow: hidden;
+}
+.scroll-progress .progress-bar {
+  width: 15%; /* Initial width */
+  transition: width 0.1s ease-out;
+  border-radius: 50px;
+}
+
+/* === Fade-in animation (desktop only) === */
+#bike-accessories-{{ section.id }} .fade-in-element {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+  will-change: opacity, transform;
+}
+#bike-accessories-{{ section.id }} .fade-in-element.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  #bike-accessories-{{ section.id }} .fade-in-element {
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* === Disable fade-in on mobile === */
+@media (max-width: 768px) {
+  #bike-accessories-{{ section.id }} .fade-in-element {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+/* Mobile scroll */
+@media (max-width: 768px) {
+  .bike-accessories-section {
+    padding-top: {{ section.settings.mobile_padding_top }}px !important;
+    padding-bottom: {{ section.settings.mobile_padding_bottom }}px !important;
+    padding-left: {{ section.settings.mobile_padding_left }}px !important;
+    padding-right: {{ section.settings.mobile_padding_right }}px !important;
+  }
+  .bike-accessories-wrapper {
+    display: flex;
+    overflow-x: auto;
+    scroll-behavior: smooth;   /* free-flow smooth scroll */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .bike-accessories-wrapper::-webkit-scrollbar {
+    display: none;
+  }
+  .bike-box {
+    flex: 0 0 90%;
+  }
+  .scroll-progress {
+    display: block;
+  }
+}
+</style>
+
+<script>
+(function() {
+  var sectionEl = document.getElementById('bike-accessories-{{ section.id }}');
+  if (!sectionEl) return;
+
+  function initProgressBar() {
+    var wrapper = sectionEl.querySelector(".bike-accessories-wrapper");
+    var progressBar = sectionEl.querySelector(".progress-bar");
+    if (!(wrapper && progressBar)) return;
+
+    var initialProgress = 30;
+
+    function updateProgress() {
+      var scrollLeft = wrapper.scrollLeft;
+      var scrollWidth = wrapper.scrollWidth - wrapper.clientWidth;
+      var scrollProgressPercent = 0;
+      if (scrollWidth > 0) {
+        scrollProgressPercent = (scrollLeft / scrollWidth) * 100;
+      }
+      var remainingProgress = 100 - initialProgress;
+      var totalProgress = initialProgress + (scrollProgressPercent * remainingProgress / 100);
+      var finalProgress = Math.max(initialProgress, Math.min(100, totalProgress));
+      progressBar.style.width = finalProgress + "%";
+    }
+
+    wrapper.addEventListener("scroll", updateProgress, { passive: true });
+    updateProgress();
+    window.addEventListener('resize', updateProgress, { passive: true });
+  }
+
+  function initFadeIn() {
+    // Skip fade-in on mobile
+    if (window.innerWidth <= 768) {
+      var faders = sectionEl.querySelectorAll(".fade-in-element");
+      faders.forEach(function(el) {
+        el.classList.add("visible");
+      });
+      return;
+    }
+
+    var faders = sectionEl.querySelectorAll(".fade-in-element");
+    if (!faders.length) return;
+
+    if ('IntersectionObserver' in window) {
+      var observer = new IntersectionObserver(function(entries, obs) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("visible");
+            obs.unobserve(entry.target);
+          }
+        });
+      }, {
+        root: null,
+        threshold: 0.12,
+        rootMargin: "0px 0px -10% 0px"
+      });
+
+      faders.forEach(function(el) { observer.observe(el); });
+    } else {
+      function revealOnScroll() {
+        var viewH = window.innerHeight || document.documentElement.clientHeight;
+        faders.forEach(function(el) {
+          if (el.classList.contains('visible')) return;
+          var rect = el.getBoundingClientRect();
+          if (rect.top < viewH * 0.88) {
+            el.classList.add('visible');
+          }
+        });
+      }
+      window.addEventListener('scroll', revealOnScroll, { passive: true });
+      window.addEventListener('resize', revealOnScroll, { passive: true });
+      revealOnScroll();
+    }
+  }
+
+  function init() {
+    initProgressBar();
+    initFadeIn();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+  document.addEventListener('shopify:section:load', function(e) {
+    if (e.target && e.target.id === 'shopify-section-{{ section.id }}') {
+      init();
+    }
+  });
+})();
+</script>

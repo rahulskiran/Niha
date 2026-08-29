@@ -1,0 +1,304 @@
+{% comment %}
+  PREMIUM Recent Sales Popup – Enhanced Customization Version
+  - Now includes dynamic font sizes, rounding, and font stacks.
+{% endcomment %}
+
+<style>
+  :root {
+    --rsn-font-main: {{ section.settings.font_family }};
+    --rsn-rounding-container: {{ section.settings.corner_rounding }}px;
+    --rsn-rounding-image: {{ section.settings.corner_rounding | divided_by: 1.75 }}px;
+    --rsn-font-size-base: {{ section.settings.font_size_base }}px;
+    --rsn-highlight-color: {{ section.settings.highlight_color }};
+  }
+
+  #recent-sales-notification {
+    position: fixed;
+    bottom: 25px;
+    left: 25px;
+    z-index: 99999;
+    background: rgba(255,255,255,0.88);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-radius: var(--rsn-rounding-container);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    padding: 16px 18px;
+    max-width: 380px;
+    width: 92%;
+    font-family: var(--rsn-font-main);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(30px) scale(0.97);
+    transition: all 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    pointer-events: none;
+    border: 1px solid rgba(255,255,255,0.4);
+  }
+
+  #recent-sales-notification.show-notification {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0px) scale(1);
+    pointer-events: auto;
+  }
+
+  .rsn-close {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0.4;
+    padding: 4px;
+    border-radius: 50%;
+    transition: 0.2s;
+  }
+  .rsn-close:hover { opacity: 1; background: rgba(0,0,0,0.05); }
+
+  .rsn-image {
+    width: 64px;
+    height: 64px;
+    margin-right: 15px;
+    border-radius: var(--rsn-rounding-image);
+    overflow: hidden;
+    background: #f8f8f8;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+
+  .rsn-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .rsn-content {
+    flex-grow: 1;
+    font-size: var(--rsn-font-size-base);
+    line-height: 1.4;
+    color: #333;
+  }
+
+  .rsn-title {
+    font-weight: 500;
+    display: block;
+    margin-bottom: 1px;
+    color: #555;
+  }
+
+  .rsn-product-name {
+    color: var(--rsn-highlight-color);
+    font-weight: 700;
+    text-decoration: none;
+    display: block;
+    margin-top: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 220px;
+  }
+
+  .rsn-time {
+    font-size: calc(var(--rsn-font-size-base) - 3px);
+    opacity: 0.6;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  
+  .rsn-time::before {
+    content: "";
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    background: #4caf50;
+    border-radius: 50%;
+  }
+
+  @media (max-width: 480px) {
+    #recent-sales-notification {
+      bottom: 15px;
+      left: 15px;
+      right: 15px;
+      width: calc(100% - 30px);
+      padding: 12px;
+    }
+    .rsn-image { width: 54px; height: 54px; }
+    .rsn-product-name { max-width: 180px; }
+  }
+</style>
+
+<div id="recent-sales-notification">
+  <div class="rsn-close" onclick="closeNotification()">×</div>
+  <div class="rsn-image">
+    <img id="rsn-img" src="" alt="Product">
+  </div>
+  <div class="rsn-content">
+    <span class="rsn-title" id="rsn-message"></span>
+    <a href="#" class="rsn-product-name" id="rsn-product-link"></a>
+    <small class="rsn-time" id="rsn-time"></small>
+  </div>
+</div>
+
+<script>
+(function() {
+  var girlNames = ["Aaradhya","Meera","Sana","Riya","Ananya","Kiara","Ishika","Suhana","Aanya","Myra","Diya","Zara","Niya","Tara","Aarushi","Lavanya","Avni","Misha","Naina","Esha","Roshni","Amara","Reet","Inaaya","Maaya","Ruhani","Aadhira","Kashish","Aisha","Nehmat","Sanya","Vritika","Ela","Samaira","Jhanvi","Vanya"];
+
+  function maskName(name) {
+    return name.slice(0, 2) + "★".repeat(name.length - 2);
+  }
+
+  function getRandomMaskedName() {
+    return maskName(girlNames[Math.floor(Math.random() * girlNames.length)]);
+  }
+
+  var purchasePhrases = ["just purchased", "picked up", "ordered", "grabbed", "is loving", "bought"];
+
+  var salesData = [
+    {% for block in section.blocks %}
+      {
+        location: "{{ block.settings.location | escape }}",
+        productName: "{{ block.settings.product.title | escape }}",
+        productUrl: "{{ block.settings.product.url }}",
+        productImage: "{% if block.settings.product.featured_image %}{{ block.settings.product.featured_image | image_url: width: 140 }}{% else %}https://cdn.shopify.com/s/files/1/0533/2089/files/placeholder-images-image_large.png?v=1530129081{% endif %}",
+        timeAgo: "{{ block.settings.time_ago }}"
+      }{% unless forloop.last %},{% endunless %}
+    {% endfor %}
+  ];
+
+  if (salesData.length === 0) return;
+
+  var config = {
+    initialDelay: {{ section.settings.initial_delay }} * 1000,
+    displayDuration: {{ section.settings.display_duration }} * 1000,
+    delayBetween: {{ section.settings.delay_between }} * 1000
+  };
+
+  var notification = document.getElementById('recent-sales-notification');
+  var imgEl = document.getElementById('rsn-img');
+  var msgEl = document.getElementById('rsn-message');
+  var linkEl = document.getElementById('rsn-product-link');
+  var timeEl = document.getElementById('rsn-time');
+
+  function showNotification() {
+    var sale = salesData[Math.floor(Math.random() * salesData.length)];
+    var customerName = getRandomMaskedName();
+    var phrase = purchasePhrases[Math.floor(Math.random() * purchasePhrases.length)];
+
+    imgEl.src = sale.productImage;
+    msgEl.innerText = customerName + " from " + sale.location + " " + phrase;
+    linkEl.innerText = sale.productName;
+    linkEl.href = sale.productUrl;
+    timeEl.innerText = sale.timeAgo;
+
+    notification.classList.add('show-notification');
+
+    setTimeout(function() {
+      notification.classList.remove('show-notification');
+      setTimeout(showNotification, config.delayBetween);
+    }, config.displayDuration);
+  }
+
+  setTimeout(showNotification, config.initialDelay);
+
+  window.closeNotification = function() {
+    notification.classList.remove('show-notification');
+  };
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Masked Sales Popup",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Typography & Style"
+    },
+    {
+      "type": "select",
+      "id": "font_family",
+      "label": "Font Family",
+      "options": [
+        { "value": "inherit", "label": "Theme Default" },
+        { "value": "Inter, sans-serif", "label": "Modern Sans (Inter)" },
+        { "value": "'Playfair Display', serif", "label": "Elegant Serif (Playfair)" },
+        { "value": "Montserrat, sans-serif", "label": "Clean Geometric (Montserrat)" },
+        { "value": "system-ui, sans-serif", "label": "System Native" }
+      ],
+      "default": "inherit"
+    },
+    {
+      "type": "range",
+      "id": "font_size_base",
+      "label": "Base Font Size",
+      "min": 11,
+      "max": 16,
+      "step": 1,
+      "unit": "px",
+      "default": 13
+    },
+    {
+      "type": "range",
+      "id": "corner_rounding",
+      "label": "Corner Rounding",
+      "min": 0,
+      "max": 30,
+      "step": 2,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "color",
+      "id": "highlight_color",
+      "label": "Product Name Color",
+      "default": "#e63946"
+    },
+    {
+      "type": "header",
+      "content": "Timing"
+    },
+    {
+      "type": "range",
+      "id": "initial_delay",
+      "label": "Initial Delay (sec)",
+      "min": 1,
+      "max": 60,
+      "default": 3
+    },
+    {
+      "type": "range",
+      "id": "display_duration",
+      "label": "Display Duration (sec)",
+      "min": 2,
+      "max": 20,
+      "default": 6
+    },
+    {
+      "type": "range",
+      "id": "delay_between",
+      "label": "Delay Between Popups (sec)",
+      "min": 2,
+      "max": 60,
+      "default": 10
+    }
+  ],
+  "blocks": [
+    {
+      "type": "sale",
+      "name": "Sale Entry",
+      "settings": [
+        { "type": "product", "id": "product", "label": "Product" },
+        { "type": "text", "id": "location", "label": "Location", "default": "Mumbai" },
+        { "type": "text", "id": "time_ago", "label": "Time Ago", "default": "2 minutes ago" }
+      ]
+    }
+  ],
+  "presets": [
+    { "name": "Premium Masked Sales Popup" }
+  ]
+}
+{% endschema %}

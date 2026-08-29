@@ -1,0 +1,798 @@
+{% doc %}
+  @prompt
+    create a premium sectino where customer can able to write the review for the product and can able to uplaod the photo and give starts for the product , remove the email and make the block full width 
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-review-form-{{ ai_gen_id }} {
+    width: 100%;
+    padding: {{ block.settings.section_padding }}px 20px;
+    background-color: {{ block.settings.background_color }};
+    border-radius: {{ block.settings.border_radius }}px;
+  }
+
+  .ai-review-form__container-{{ ai_gen_id }} {
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  .ai-review-form__heading-{{ ai_gen_id }} {
+    font-size: {{ block.settings.heading_size }}px;
+    color: {{ block.settings.text_color }};
+    margin: 0 0 24px;
+    text-align: center;
+  }
+
+  .ai-review-form__subheading-{{ ai_gen_id }} {
+    font-size: {{ block.settings.subheading_size }}px;
+    color: {{ block.settings.text_color }};
+    margin: 0 0 32px;
+    text-align: center;
+    opacity: 0.8;
+  }
+
+  .ai-review-form__form-{{ ai_gen_id }} {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .ai-review-form__field-{{ ai_gen_id }} {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .ai-review-form__label-{{ ai_gen_id }} {
+    font-size: 14px;
+    font-weight: 600;
+    color: {{ block.settings.text_color }};
+  }
+
+  .ai-review-form__required-{{ ai_gen_id }} {
+    color: {{ block.settings.error_color }};
+    margin-left: 4px;
+  }
+
+  .ai-review-form__input-{{ ai_gen_id }},
+  .ai-review-form__textarea-{{ ai_gen_id }} {
+    padding: 12px 16px;
+    border: 1px solid {{ block.settings.input_border_color }};
+    border-radius: {{ block.settings.input_border_radius }}px;
+    font-size: 14px;
+    color: {{ block.settings.text_color }};
+    background-color: {{ block.settings.input_background_color }};
+    font-family: inherit;
+  }
+
+  .ai-review-form__input-{{ ai_gen_id }}:focus,
+  .ai-review-form__textarea-{{ ai_gen_id }}:focus {
+    outline: 2px solid {{ block.settings.primary_color }};
+    outline-offset: 0;
+    border-color: {{ block.settings.primary_color }};
+  }
+
+  .ai-review-form__textarea-{{ ai_gen_id }} {
+    min-height: 120px;
+    resize: vertical;
+  }
+
+  .ai-review-form__star-rating-{{ ai_gen_id }} {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .ai-review-form__stars-{{ ai_gen_id }} {
+    display: flex;
+    gap: 4px;
+  }
+
+  .ai-review-form__star-{{ ai_gen_id }} {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    width: {{ block.settings.star_size }}px;
+    height: {{ block.settings.star_size }}px;
+    transition: transform 0.2s ease;
+  }
+
+  .ai-review-form__star-{{ ai_gen_id }}:hover {
+    transform: scale(1.1);
+  }
+
+  .ai-review-form__star-{{ ai_gen_id }} svg {
+    width: 100%;
+    height: 100%;
+    fill: {{ block.settings.star_empty_color }};
+    stroke: {{ block.settings.star_empty_color }};
+    transition: fill 0.2s ease;
+  }
+
+  .ai-review-form__star-{{ ai_gen_id }}.active svg {
+    fill: {{ block.settings.star_filled_color }};
+    stroke: {{ block.settings.star_filled_color }};
+  }
+
+  .ai-review-form__rating-text-{{ ai_gen_id }} {
+    font-size: 14px;
+    color: {{ block.settings.text_color }};
+    opacity: 0.7;
+  }
+
+  .ai-review-form__photo-upload-{{ ai_gen_id }} {
+    position: relative;
+  }
+
+  .ai-review-form__file-input-{{ ai_gen_id }} {
+    display: none;
+  }
+
+  .ai-review-form__upload-button-{{ ai_gen_id }} {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background-color: {{ block.settings.upload_button_color }};
+    color: {{ block.settings.upload_button_text_color }};
+    border: 1px solid {{ block.settings.input_border_color }};
+    border-radius: {{ block.settings.input_border_radius }}px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+  }
+
+  .ai-review-form__upload-button-{{ ai_gen_id }}:hover {
+    background-color: {{ block.settings.upload_button_hover_color }};
+  }
+
+  .ai-review-form__upload-icon-{{ ai_gen_id }} {
+    width: 20px;
+    height: 20px;
+  }
+
+  .ai-review-form__preview-container-{{ ai_gen_id }} {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 12px;
+  }
+
+  .ai-review-form__preview-item-{{ ai_gen_id }} {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid {{ block.settings.input_border_color }};
+  }
+
+  .ai-review-form__preview-image-{{ ai_gen_id }} {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .ai-review-form__remove-photo-{{ ai_gen_id }} {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background-color: {{ block.settings.error_color }};
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .ai-review-form__remove-photo-{{ ai_gen_id }}:hover {
+    opacity: 0.8;
+  }
+
+  .ai-review-form__submit-{{ ai_gen_id }} {
+    padding: 16px 32px;
+    background-color: {{ block.settings.submit_button_color }};
+    color: {{ block.settings.submit_button_text_color }};
+    border: none;
+    border-radius: {{ block.settings.button_border_radius }}px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 8px;
+  }
+
+  .ai-review-form__submit-{{ ai_gen_id }}:hover {
+    background-color: {{ block.settings.submit_button_hover_color }};
+  }
+
+  .ai-review-form__submit-{{ ai_gen_id }}:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .ai-review-form__success-{{ ai_gen_id }} {
+    padding: 16px;
+    background-color: {{ block.settings.success_bg_color }};
+    color: {{ block.settings.success_text_color }};
+    border-radius: {{ block.settings.input_border_radius }}px;
+    text-align: center;
+    margin-top: 16px;
+  }
+
+  .ai-review-form__error-{{ ai_gen_id }} {
+    padding: 16px;
+    background-color: {{ block.settings.error_bg_color }};
+    color: {{ block.settings.error_color }};
+    border-radius: {{ block.settings.input_border_radius }}px;
+    margin-top: 16px;
+  }
+
+  .ai-review-form__error-list-{{ ai_gen_id }} {
+    margin: 0;
+    padding-left: 20px;
+  }
+
+  .ai-review-form__file-info-{{ ai_gen_id }} {
+    font-size: 12px;
+    color: {{ block.settings.text_color }};
+    opacity: 0.6;
+    margin-top: 4px;
+  }
+
+  @media screen and (max-width: 749px) {
+    .ai-review-form-{{ ai_gen_id }} {
+      padding: {{ block.settings.section_padding | times: 0.6 }}px 16px;
+    }
+
+    .ai-review-form__heading-{{ ai_gen_id }} {
+      font-size: {{ block.settings.heading_size | times: 0.8 }}px;
+    }
+
+    .ai-review-form__star-{{ ai_gen_id }} {
+      width: {{ block.settings.star_size | times: 0.9 }}px;
+      height: {{ block.settings.star_size | times: 0.9 }}px;
+    }
+  }
+{% endstyle %}
+
+<product-review-form-{{ ai_gen_id }} class="ai-review-form-{{ ai_gen_id }}" {{ block.shopify_attributes }}>
+  <div class="ai-review-form__container-{{ ai_gen_id }}">
+    <h2 class="ai-review-form__heading-{{ ai_gen_id }}">{{ block.settings.heading }}</h2>
+    {% if block.settings.subheading != blank %}
+      <p class="ai-review-form__subheading-{{ ai_gen_id }}">{{ block.settings.subheading }}</p>
+    {% endif %}
+
+    {%- form 'contact' -%}
+      <input type="hidden" name="contact[product_id]" value="{{ product.id }}">
+      <input type="hidden" name="contact[product_title]" value="{{ product.title }}">
+      <input type="hidden" name="contact[review_type]" value="product_review">
+      
+      <div class="ai-review-form__form-{{ ai_gen_id }}">
+        <div class="ai-review-form__field-{{ ai_gen_id }}">
+          <label class="ai-review-form__label-{{ ai_gen_id }}" for="review-name-{{ ai_gen_id }}">
+            {{ block.settings.name_label }}
+            <span class="ai-review-form__required-{{ ai_gen_id }}">*</span>
+          </label>
+          <input
+            type="text"
+            id="review-name-{{ ai_gen_id }}"
+            name="contact[name]"
+            class="ai-review-form__input-{{ ai_gen_id }}"
+            required
+            aria-required="true"
+            {% if form.errors %}
+              aria-invalid="true"
+            {% endif %}
+          >
+        </div>
+
+        <div class="ai-review-form__field-{{ ai_gen_id }}">
+          <label class="ai-review-form__label-{{ ai_gen_id }}">
+            {{ block.settings.rating_label }}
+            <span class="ai-review-form__required-{{ ai_gen_id }}">*</span>
+          </label>
+          <div class="ai-review-form__star-rating-{{ ai_gen_id }}">
+            <div class="ai-review-form__stars-{{ ai_gen_id }}" data-rating-container>
+              {% for i in (1..5) %}
+                <button
+                  type="button"
+                  class="ai-review-form__star-{{ ai_gen_id }}"
+                  data-rating="{{ i }}"
+                  aria-label="Rate {{ i }} out of 5 stars"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="1.5">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                  </svg>
+                </button>
+              {% endfor %}
+            </div>
+            <span class="ai-review-form__rating-text-{{ ai_gen_id }}" data-rating-text></span>
+          </div>
+          <input type="hidden" name="contact[rating]" data-rating-input required>
+        </div>
+
+        <div class="ai-review-form__field-{{ ai_gen_id }}">
+          <label class="ai-review-form__label-{{ ai_gen_id }}" for="review-title-{{ ai_gen_id }}">
+            {{ block.settings.review_title_label }}
+            <span class="ai-review-form__required-{{ ai_gen_id }}">*</span>
+          </label>
+          <input
+            type="text"
+            id="review-title-{{ ai_gen_id }}"
+            name="contact[review_title]"
+            class="ai-review-form__input-{{ ai_gen_id }}"
+            required
+            aria-required="true"
+          >
+        </div>
+
+        <div class="ai-review-form__field-{{ ai_gen_id }}">
+          <label class="ai-review-form__label-{{ ai_gen_id }}" for="review-message-{{ ai_gen_id }}">
+            {{ block.settings.review_message_label }}
+            <span class="ai-review-form__required-{{ ai_gen_id }}">*</span>
+          </label>
+          <textarea
+            id="review-message-{{ ai_gen_id }}"
+            name="contact[body]"
+            class="ai-review-form__textarea-{{ ai_gen_id }}"
+            required
+            aria-required="true"
+          ></textarea>
+        </div>
+
+        {% if block.settings.enable_photo_upload %}
+          <div class="ai-review-form__field-{{ ai_gen_id }}">
+            <label class="ai-review-form__label-{{ ai_gen_id }}">
+              {{ block.settings.photo_upload_label }}
+            </label>
+            <div class="ai-review-form__photo-upload-{{ ai_gen_id }}">
+              <input
+                type="file"
+                id="review-photos-{{ ai_gen_id }}"
+                class="ai-review-form__file-input-{{ ai_gen_id }}"
+                accept="image/*"
+                multiple
+                data-photo-input
+              >
+              <label for="review-photos-{{ ai_gen_id }}" class="ai-review-form__upload-button-{{ ai_gen_id }}">
+                <svg class="ai-review-form__upload-icon-{{ ai_gen_id }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                {{ block.settings.upload_button_text }}
+              </label>
+              <div class="ai-review-form__file-info-{{ ai_gen_id }}">
+                {{ block.settings.file_info_text }}
+              </div>
+            </div>
+            <div class="ai-review-form__preview-container-{{ ai_gen_id }}" data-preview-container></div>
+          </div>
+        {% endif %}
+
+        <button type="submit" class="ai-review-form__submit-{{ ai_gen_id }}">
+          {{ block.settings.submit_button_text }}
+        </button>
+
+        {%- if form.posted_successfully? -%}
+          <div class="ai-review-form__success-{{ ai_gen_id }}">
+            {{ block.settings.success_message }}
+          </div>
+        {%- endif -%}
+
+        {%- if form.errors -%}
+          <div class="ai-review-form__error-{{ ai_gen_id }}">
+            <p><strong>{{ block.settings.error_heading }}</strong></p>
+            <ul class="ai-review-form__error-list-{{ ai_gen_id }}">
+              {%- for field in form.errors -%}
+                <li>{{ form.errors.messages[field] }}</li>
+              {%- endfor -%}
+            </ul>
+          </div>
+        {%- endif -%}
+      </div>
+    {%- endform -%}
+  </div>
+</product-review-form-{{ ai_gen_id }}>
+
+<script>
+  (function() {
+    class ProductReviewForm{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+        this.ratingContainer = this.querySelector('[data-rating-container]');
+        this.ratingInput = this.querySelector('[data-rating-input]');
+        this.ratingText = this.querySelector('[data-rating-text]');
+        this.stars = this.querySelectorAll('.ai-review-form__star-{{ ai_gen_id }}');
+        this.photoInput = this.querySelector('[data-photo-input]');
+        this.previewContainer = this.querySelector('[data-preview-container]');
+        this.currentRating = 0;
+        this.selectedFiles = [];
+        this.ratingLabels = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
+      }
+
+      connectedCallback() {
+        this.setupStarRating();
+        if (this.photoInput) {
+          this.setupPhotoUpload();
+        }
+      }
+
+      setupStarRating() {
+        this.stars.forEach((star, index) => {
+          star.addEventListener('click', () => {
+            this.setRating(index + 1);
+          });
+
+          star.addEventListener('mouseenter', () => {
+            this.highlightStars(index + 1);
+          });
+        });
+
+        this.ratingContainer.addEventListener('mouseleave', () => {
+          this.highlightStars(this.currentRating);
+        });
+      }
+
+      setRating(rating) {
+        this.currentRating = rating;
+        this.ratingInput.value = rating;
+        this.highlightStars(rating);
+        this.ratingText.textContent = this.ratingLabels[rating];
+      }
+
+      highlightStars(count) {
+        this.stars.forEach((star, index) => {
+          if (index < count) {
+            star.classList.add('active');
+          } else {
+            star.classList.remove('active');
+          }
+        });
+      }
+
+      setupPhotoUpload() {
+        this.photoInput.addEventListener('change', (e) => {
+          const files = Array.from(e.target.files);
+          files.forEach(file => {
+            if (file.type.startsWith('image/')) {
+              this.selectedFiles.push(file);
+              this.addPreview(file);
+            }
+          });
+        });
+      }
+
+      addPreview(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const previewItem = document.createElement('div');
+          previewItem.className = 'ai-review-form__preview-item-{{ ai_gen_id }}';
+          
+          const img = document.createElement('img');
+          img.src = e.target.result;
+          img.className = 'ai-review-form__preview-image-{{ ai_gen_id }}';
+          img.alt = file.name;
+          
+          const removeBtn = document.createElement('button');
+          removeBtn.type = 'button';
+          removeBtn.className = 'ai-review-form__remove-photo-{{ ai_gen_id }}';
+          removeBtn.innerHTML = '×';
+          removeBtn.setAttribute('aria-label', 'Remove photo');
+          removeBtn.addEventListener('click', () => {
+            this.removePreview(previewItem, file);
+          });
+          
+          previewItem.appendChild(img);
+          previewItem.appendChild(removeBtn);
+          this.previewContainer.appendChild(previewItem);
+        };
+        reader.readAsDataURL(file);
+      }
+
+      removePreview(previewItem, file) {
+        const index = this.selectedFiles.indexOf(file);
+        if (index > -1) {
+          this.selectedFiles.splice(index, 1);
+        }
+        previewItem.remove();
+      }
+    }
+
+    customElements.define('product-review-form-{{ ai_gen_id }}', ProductReviewForm{{ ai_gen_id }});
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Product review form",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Write a Review"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "Share your experience with this product"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "name_label",
+      "label": "Name field label",
+      "default": "Your Name"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "rating_label",
+      "label": "Rating field label",
+      "default": "Your Rating"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "review_title_label",
+      "label": "Review title label",
+      "default": "Review Title"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "review_message_label",
+      "label": "Review message label",
+      "default": "Your Review"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "submit_button_text",
+      "label": "Submit button text",
+      "default": "Submit Review"
+    },
+    {
+      "type": "richtext",
+      "id": "success_message",
+      "label": "Success message",
+      "default": "<p>Thank you for your review! We appreciate your feedback.</p>"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "error_heading",
+      "label": "Error heading",
+      "default": "Please correct the following errors:"
+    },
+    {
+      "type": "header",
+      "content": "Photo upload"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_photo_upload",
+      "label": "Enable photo upload",
+      "default": true
+    },
+    {
+      "type": "inline_richtext",
+      "id": "photo_upload_label",
+      "label": "Photo upload label",
+      "default": "Add Photos"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "upload_button_text",
+      "label": "Upload button text",
+      "default": "Choose Photos"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "file_info_text",
+      "label": "File info text",
+      "default": "You can upload multiple images (JPG, PNG)"
+    },
+    {
+      "type": "header",
+      "content": "Style"
+    },
+    {
+      "type": "range",
+      "id": "section_padding",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "px",
+      "label": "Section padding",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "border_radius",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "Border radius",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "input_border_radius",
+      "min": 0,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Input border radius",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "button_border_radius",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "Button border radius",
+      "default": 8
+    },
+    {
+      "type": "header",
+      "content": "Typography"
+    },
+    {
+      "type": "range",
+      "id": "heading_size",
+      "min": 16,
+      "max": 48,
+      "step": 2,
+      "unit": "px",
+      "label": "Heading size",
+      "default": 32
+    },
+    {
+      "type": "range",
+      "id": "subheading_size",
+      "min": 12,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "label": "Subheading size",
+      "default": 16
+    },
+    {
+      "type": "header",
+      "content": "Star rating"
+    },
+    {
+      "type": "range",
+      "id": "star_size",
+      "min": 20,
+      "max": 50,
+      "step": 2,
+      "unit": "px",
+      "label": "Star size",
+      "default": 32
+    },
+    {
+      "type": "color",
+      "id": "star_filled_color",
+      "label": "Filled star color",
+      "default": "#FFD700"
+    },
+    {
+      "type": "color",
+      "id": "star_empty_color",
+      "label": "Empty star color",
+      "default": "#E0E0E0"
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background",
+      "default": "#FFFFFF"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "primary_color",
+      "label": "Primary accent",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "input_background_color",
+      "label": "Input background",
+      "default": "#FFFFFF"
+    },
+    {
+      "type": "color",
+      "id": "input_border_color",
+      "label": "Input border",
+      "default": "#DDDDDD"
+    },
+    {
+      "type": "color",
+      "id": "submit_button_color",
+      "label": "Submit button background",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "submit_button_text_color",
+      "label": "Submit button text",
+      "default": "#FFFFFF"
+    },
+    {
+      "type": "color",
+      "id": "submit_button_hover_color",
+      "label": "Submit button hover",
+      "default": "#333333"
+    },
+    {
+      "type": "color",
+      "id": "upload_button_color",
+      "label": "Upload button background",
+      "default": "#F5F5F5"
+    },
+    {
+      "type": "color",
+      "id": "upload_button_text_color",
+      "label": "Upload button text",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "upload_button_hover_color",
+      "label": "Upload button hover",
+      "default": "#E8E8E8"
+    },
+    {
+      "type": "color",
+      "id": "success_bg_color",
+      "label": "Success background",
+      "default": "#D4EDDA"
+    },
+    {
+      "type": "color",
+      "id": "success_text_color",
+      "label": "Success text",
+      "default": "#155724"
+    },
+    {
+      "type": "color",
+      "id": "error_bg_color",
+      "label": "Error background",
+      "default": "#F8D7DA"
+    },
+    {
+      "type": "color",
+      "id": "error_color",
+      "label": "Error text",
+      "default": "#721C24"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Product review form"
+    }
+  ]
+}
+{% endschema %}

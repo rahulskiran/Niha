@@ -1,0 +1,370 @@
+{% doc %}
+  @prompt
+    create a block that inherits the description metafield and has the options of the material and fit in it 
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-product-description-{{ ai_gen_id }} {
+    padding: {{ block.settings.padding }}px 0;
+  }
+
+  .ai-product-description__content-{{ ai_gen_id }} {
+    max-width: 100%;
+  }
+
+  .ai-product-description__heading-{{ ai_gen_id }} {
+    font-size: {{ block.settings.heading_size }}px;
+    color: {{ block.settings.heading_color }};
+    margin: 0 0 {{ block.settings.spacing }}px;
+    font-family: var(--font-heading-family);
+    font-weight: var(--font-heading-weight);
+    line-height: 1.2;
+  }
+
+  .ai-product-description__text-{{ ai_gen_id }} {
+    font-size: {{ block.settings.text_size }}px;
+    color: {{ block.settings.text_color }};
+    line-height: 1.6;
+    margin: 0 0 {{ block.settings.spacing }}px;
+  }
+
+  .ai-product-description__details-{{ ai_gen_id }} {
+    display: flex;
+    flex-direction: column;
+    gap: {{ block.settings.details_spacing }}px;
+    margin-top: {{ block.settings.spacing }}px;
+  }
+
+  .ai-product-description__detail-item-{{ ai_gen_id }} {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: {{ block.settings.detail_padding }}px;
+    background-color: {{ block.settings.detail_background }};
+    border-radius: {{ block.settings.detail_border_radius }}px;
+    border: {{ block.settings.detail_border_width }}px solid {{ block.settings.detail_border_color }};
+  }
+
+  .ai-product-description__detail-label-{{ ai_gen_id }} {
+    font-size: {{ block.settings.label_size }}px;
+    font-weight: 600;
+    color: {{ block.settings.label_color }};
+    min-width: 80px;
+    flex-shrink: 0;
+  }
+
+  .ai-product-description__detail-value-{{ ai_gen_id }} {
+    font-size: {{ block.settings.text_size }}px;
+    color: {{ block.settings.text_color }};
+    line-height: 1.5;
+  }
+
+  @media screen and (max-width: 749px) {
+    .ai-product-description__heading-{{ ai_gen_id }} {
+      font-size: calc({{ block.settings.heading_size }}px * 0.8);
+    }
+
+    .ai-product-description__detail-item-{{ ai_gen_id }} {
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .ai-product-description__detail-label-{{ ai_gen_id }} {
+      min-width: auto;
+    }
+  }
+{% endstyle %}
+
+<div class="ai-product-description-{{ ai_gen_id }}" {{ block.shopify_attributes }}>
+  <div class="ai-product-description__content-{{ ai_gen_id }}">
+    {% if block.settings.show_heading and block.settings.heading != blank %}
+      <h3 class="ai-product-description__heading-{{ ai_gen_id }}">
+        {{ block.settings.heading }}
+      </h3>
+    {% endif %}
+
+    {% if block.settings.description_metafield != blank %}
+      {% assign description_content = product.metafields[block.settings.description_metafield] %}
+      {% if description_content != blank %}
+        <div class="ai-product-description__text-{{ ai_gen_id }}">
+          {{ description_content }}
+        </div>
+      {% endif %}
+    {% elsif product.description != blank %}
+      <div class="ai-product-description__text-{{ ai_gen_id }}">
+        {{ product.description }}
+      </div>
+    {% endif %}
+
+    <div class="ai-product-description__details-{{ ai_gen_id }}">
+      {% if block.settings.show_material %}
+        {% assign material_value = blank %}
+        
+        {% if block.settings.material_metafield != blank %}
+          {% assign material_value = product.metafields[block.settings.material_metafield] %}
+        {% endif %}
+
+        {% if material_value == blank and block.settings.material_fallback != blank %}
+          {% assign material_value = block.settings.material_fallback %}
+        {% endif %}
+
+        {% if material_value != blank %}
+          <div class="ai-product-description__detail-item-{{ ai_gen_id }}">
+            <div class="ai-product-description__detail-label-{{ ai_gen_id }}">
+              {{ block.settings.material_label }}
+            </div>
+            <div class="ai-product-description__detail-value-{{ ai_gen_id }}">
+              {{ material_value }}
+            </div>
+          </div>
+        {% endif %}
+      {% endif %}
+
+      {% if block.settings.show_fit %}
+        {% assign fit_value = blank %}
+        
+        {% if block.settings.fit_metafield != blank %}
+          {% assign fit_value = product.metafields[block.settings.fit_metafield] %}
+        {% endif %}
+
+        {% if fit_value == blank and block.settings.fit_fallback != blank %}
+          {% assign fit_value = block.settings.fit_fallback %}
+        {% endif %}
+
+        {% if fit_value != blank %}
+          <div class="ai-product-description__detail-item-{{ ai_gen_id }}">
+            <div class="ai-product-description__detail-label-{{ ai_gen_id }}">
+              {{ block.settings.fit_label }}
+            </div>
+            <div class="ai-product-description__detail-value-{{ ai_gen_id }}">
+              {{ fit_value }}
+            </div>
+          </div>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Product details",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Heading"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_heading",
+      "label": "Show heading",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading text",
+      "default": "Product Details"
+    },
+    {
+      "type": "range",
+      "id": "heading_size",
+      "min": 14,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "Heading size",
+      "default": 24
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Heading color",
+      "default": "#000000"
+    },
+    {
+      "type": "header",
+      "content": "Description"
+    },
+    {
+      "type": "text",
+      "id": "description_metafield",
+      "label": "Description metafield",
+      "info": "Enter metafield namespace and key (e.g., custom.description)"
+    },
+    {
+      "type": "range",
+      "id": "text_size",
+      "min": 12,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Text size",
+      "default": 14
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#000000"
+    },
+    {
+      "type": "header",
+      "content": "Material"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_material",
+      "label": "Show material",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "material_label",
+      "label": "Material label",
+      "default": "Material"
+    },
+    {
+      "type": "text",
+      "id": "material_metafield",
+      "label": "Material metafield",
+      "info": "Enter metafield namespace and key (e.g., custom.material)"
+    },
+    {
+      "type": "text",
+      "id": "material_fallback",
+      "label": "Fallback text"
+    },
+    {
+      "type": "header",
+      "content": "Fit"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_fit",
+      "label": "Show fit",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "fit_label",
+      "label": "Fit label",
+      "default": "Fit"
+    },
+    {
+      "type": "text",
+      "id": "fit_metafield",
+      "label": "Fit metafield",
+      "info": "Enter metafield namespace and key (e.g., custom.fit)"
+    },
+    {
+      "type": "text",
+      "id": "fit_fallback",
+      "label": "Fallback text"
+    },
+    {
+      "type": "header",
+      "content": "Detail boxes"
+    },
+    {
+      "type": "range",
+      "id": "label_size",
+      "min": 12,
+      "max": 18,
+      "step": 1,
+      "unit": "px",
+      "label": "Label size",
+      "default": 14
+    },
+    {
+      "type": "color",
+      "id": "label_color",
+      "label": "Label color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "detail_background",
+      "label": "Background",
+      "default": "#f5f5f5"
+    },
+    {
+      "type": "color",
+      "id": "detail_border_color",
+      "label": "Border color",
+      "default": "#e6e6e6"
+    },
+    {
+      "type": "range",
+      "id": "detail_border_width",
+      "min": 0,
+      "max": 4,
+      "step": 1,
+      "unit": "px",
+      "label": "Border width",
+      "default": 1
+    },
+    {
+      "type": "range",
+      "id": "detail_border_radius",
+      "min": 0,
+      "max": 20,
+      "step": 2,
+      "unit": "px",
+      "label": "Border radius",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "detail_padding",
+      "min": 8,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "label": "Padding",
+      "default": 16
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "spacing",
+      "min": 8,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "Section spacing",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "details_spacing",
+      "min": 4,
+      "max": 24,
+      "step": 2,
+      "unit": "px",
+      "label": "Detail items spacing",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "padding",
+      "min": 0,
+      "max": 60,
+      "step": 4,
+      "unit": "px",
+      "label": "Block padding",
+      "default": 20
+    }
+  ],
+  "presets": [
+    {
+      "name": "Product details"
+    }
+  ]
+}
+{% endschema %}

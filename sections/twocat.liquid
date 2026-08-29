@@ -1,0 +1,419 @@
+{% comment %}
+  Collection Grid (2 Items) - Portrait Layout with High-Quality Images
+  Creates a responsive 2-column grid of collections with optimized high-quality images
+{% endcomment %}
+
+<div class="collection-grid-two">
+  {% for i in (1..2) %}
+    {% assign collection_key = 'collection_' | append: i %}
+    {% assign image_key = 'image_' | append: i %}
+    {% assign title_key = 'title_' | append: i %}
+
+    {% assign collection_handle = section.settings[collection_key] %}
+    {% assign custom_image = section.settings[image_key] %}
+    {% assign custom_title = section.settings[title_key] %}
+    {% assign collection = collections[collection_handle] %}
+
+    {% if collection %}
+      <div class="collection-card">
+        <div class="image-wrapper">
+          {% if custom_image != blank %}
+            <img 
+              src="{{ custom_image | image_url: width: 1200 }}" 
+              srcset="{{ custom_image | image_url: width: 600 }} 600w,
+                      {{ custom_image | image_url: width: 900 }} 900w,
+                      {{ custom_image | image_url: width: 1200 }} 1200w,
+                      {{ custom_image | image_url: width: 1500 }} 1500w,
+                      {{ custom_image | image_url: width: 1800 }} 1800w"
+              sizes="(max-width: 767px) 100vw, 50vw"
+              alt="{{ custom_title }}" 
+              loading="lazy"
+              width="{{ custom_image.width | default: 1200 }}"
+              height="{{ custom_image.height | default: 1600 }}">
+          {% elsif collection.image %}
+            <img 
+              src="{{ collection.image | image_url: width: 1200 }}" 
+              srcset="{{ collection.image | image_url: width: 600 }} 600w,
+                      {{ collection.image | image_url: width: 900 }} 900w,
+                      {{ collection.image | image_url: width: 1200 }} 1200w,
+                      {{ collection.image | image_url: width: 1500 }} 1500w,
+                      {{ collection.image | image_url: width: 1800 }} 1800w"
+              sizes="(max-width: 767px) 100vw, 50vw"
+              alt="{{ custom_title }}" 
+              loading="lazy"
+              width="{{ collection.image.width | default: 1200 }}"
+              height="{{ collection.image.height | default: 1600 }}">
+          {% else %}
+            <div class="no-image-placeholder">
+              <span>{{ custom_title }}</span>
+            </div>
+          {% endif %}
+          <div class="overlay"></div>
+          <div class="collection-content">
+            <div class="collection-title">{{ custom_title }}</div>
+            {% if section.settings.button_text != blank %}
+              <a href="{{ collection.url }}" class="collection-button">
+                {{ section.settings.button_text }}
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  {% endfor %}
+</div>
+
+<style>
+.collection-grid-two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: {{ section.settings.grid_gap }}px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+@media screen and (max-width: 768px) {
+  .collection-grid-two {
+    grid-template-columns: 1fr;
+    gap: {{ section.settings.grid_gap | divided_by: 2 }}px;
+  }
+}
+
+.collection-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: {{ section.settings.corner_radius }}px;
+  text-decoration: none;
+  display: block;
+  aspect-ratio: 3/4; /* Portrait aspect ratio */
+  min-height: 400px;
+}
+
+.collection-card .image-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.collection-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: {{ section.settings.corner_radius }}px;
+}
+
+.no-image-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: {{ section.settings.corner_radius }}px;
+  color: white;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.collection-card .overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, {{ section.settings.overlay_opacity }}); 
+  border-radius: {{ section.settings.corner_radius }}px;
+}
+
+.collection-card .collection-content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: {{ section.settings.text_vertical }};
+  align-items: {{ section.settings.text_horizontal }};
+  {% assign text_align = section.settings.text_horizontal | replace: 'flex-start', 'left' | replace: 'flex-end', 'right' | replace: 'center', 'center' %}
+  text-align: {{ text_align }};
+  color: #fff;
+  z-index: 2;
+  padding: 20px;
+}
+
+.collection-card .collection-title {
+  font-size: {{ section.settings.text_size }}px;
+  font-weight: {{ section.settings.text_weight }};
+  line-height: 1.2;
+  margin: 0 0 {{ section.settings.button_spacing }}px 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  {% if section.settings.text_horizontal == 'center' %}
+    text-align: center;
+  {% elsif section.settings.text_horizontal == 'flex-end' %}
+    text-align: right;
+  {% else %}
+    text-align: left;
+  {% endif %}
+}
+
+.collection-card .collection-button {
+  display: inline-block;
+  background: {{ section.settings.button_bg_color }};
+  color: {{ section.settings.button_text_color }};
+  padding: {{ section.settings.button_padding_vertical }}px {{ section.settings.button_padding_horizontal }}px;
+  border: {{ section.settings.button_border_width }}px solid {{ section.settings.button_border_color }};
+  border-radius: {{ section.settings.button_border_radius }}px;
+  font-size: {{ section.settings.button_font_size }}px;
+  font-weight: {{ section.settings.button_font_weight }};
+  text-decoration: none;
+  cursor: pointer;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  {% if section.settings.text_horizontal == 'center' %}
+    text-align: center;
+  {% elsif section.settings.text_horizontal == 'flex-end' %}
+    text-align: right;
+  {% else %}
+    text-align: left;
+  {% endif %}
+}
+
+@media screen and (max-width: 480px) {
+  .collection-card {
+    min-height: 350px;
+  }
+  
+  .collection-card .collection-title {
+    font-size: {{ section.settings.text_size | divided_by: 1.2 }}px;
+  }
+  
+  .collection-card .collection-button {
+    font-size: {{ section.settings.button_font_size | divided_by: 1.1 }}px;
+    padding: {{ section.settings.button_padding_vertical | divided_by: 1.2 }}px {{ section.settings.button_padding_horizontal | divided_by: 1.2 }}px;
+  }
+  
+  .collection-card .collection-content {
+    padding: 15px;
+  }
+}
+</style>
+
+{% schema %}
+{
+  "name": "Collection Grid (2 items)",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Collection 1"
+    },
+    {
+      "type": "collection",
+      "id": "collection_1",
+      "label": "Select Collection 1"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_1",
+      "label": "Custom Image for Collection 1"
+    },
+    {
+      "type": "text",
+      "id": "title_1",
+      "label": "Custom Text for Collection 1",
+      "default": "Collection One"
+    },
+    {
+      "type": "header",
+      "content": "Collection 2"
+    },
+    {
+      "type": "collection",
+      "id": "collection_2",
+      "label": "Select Collection 2"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_2",
+      "label": "Custom Image for Collection 2"
+    },
+    {
+      "type": "text",
+      "id": "title_2",
+      "label": "Custom Text for Collection 2",
+      "default": "Collection Two"
+    },
+    {
+      "type": "header",
+      "content": "Layout Settings"
+    },
+    {
+      "type": "range",
+      "id": "corner_radius",
+      "label": "Image Corner Radius (px)",
+      "min": 0,
+      "max": 50,
+      "step": 2,
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "Overlay Opacity",
+      "min": 0,
+      "max": 1,
+      "step": 0.1,
+      "default": 0.4
+    },
+    {
+      "type": "range",
+      "id": "grid_gap",
+      "label": "Gap between images (px)",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "default": 20
+    },
+    {
+      "type": "header",
+      "content": "Text Settings"
+    },
+    {
+      "type": "select",
+      "id": "text_vertical",
+      "label": "Text Vertical Position",
+      "default": "center",
+      "options": [
+        { "value": "flex-start", "label": "Top" },
+        { "value": "center", "label": "Center" },
+        { "value": "flex-end", "label": "Bottom" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "text_horizontal",
+      "label": "Text Horizontal Position",
+      "default": "center",
+      "options": [
+        { "value": "flex-start", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "flex-end", "label": "Right" }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "text_size",
+      "label": "Text Font Size (px)",
+      "min": 12,
+      "max": 60,
+      "step": 2,
+      "default": 28
+    },
+    {
+      "type": "select",
+      "id": "text_weight",
+      "label": "Text Font Weight",
+      "default": "600",
+      "options": [
+        { "value": "400", "label": "Normal" },
+        { "value": "500", "label": "Medium" },
+        { "value": "600", "label": "Semi Bold" },
+        { "value": "700", "label": "Bold" }
+      ]
+    },
+    {
+      "type": "header",
+      "content": "Button Settings"
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Button Text",
+      "default": "Shop Now"
+    },
+    {
+      "type": "range",
+      "id": "button_spacing",
+      "label": "Space between Title and Button (px)",
+      "min": 0,
+      "max": 50,
+      "step": 2,
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "button_font_size",
+      "label": "Button Font Size (px)",
+      "min": 10,
+      "max": 30,
+      "step": 1,
+      "default": 16
+    },
+    {
+      "type": "select",
+      "id": "button_font_weight",
+      "label": "Button Font Weight",
+      "default": "500",
+      "options": [
+        { "value": "400", "label": "Normal" },
+        { "value": "500", "label": "Medium" },
+        { "value": "600", "label": "Semi Bold" },
+        { "value": "700", "label": "Bold" }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "button_padding_vertical",
+      "label": "Button Vertical Padding (px)",
+      "min": 5,
+      "max": 25,
+      "step": 1,
+      "default": 10
+    },
+    {
+      "type": "range",
+      "id": "button_padding_horizontal",
+      "label": "Button Horizontal Padding (px)",
+      "min": 10,
+      "max": 40,
+      "step": 2,
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "button_border_radius",
+      "label": "Button Border Radius (px)",
+      "min": 0,
+      "max": 50,
+      "step": 2,
+      "default": 30
+    },
+    {
+      "type": "range",
+      "id": "button_border_width",
+      "label": "Button Border Width (px)",
+      "min": 0,
+      "max": 5,
+      "step": 1,
+      "default": 2
+    },
+    {
+      "type": "color",
+      "id": "button_bg_color",
+      "label": "Button Background Color",
+      "default": "transparent"
+    },
+    {
+      "type": "color",
+      "id": "button_text_color",
+      "label": "Button Text Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "button_border_color",
+      "label": "Button Border Color",
+      "default": "#ffffff"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Collection Grid (2 items)"
+    }
+  ]
+}
+{% endschema %}

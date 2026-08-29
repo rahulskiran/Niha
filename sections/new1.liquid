@@ -1,0 +1,298 @@
+{% comment %}
+  Custom Editorial Text Section
+  - Allows mixing two font styles using the "Italic" button in the editor.
+  - Fully responsive with separate controls for Desktop and Mobile.
+  - Includes Font Size, Padding, and Letter Spacing controls.
+{% endcomment %}
+
+{% style %}
+  /* Load Fonts */
+  {{ section.settings.main_font | font_face: font_display: 'swap' }}
+  {{ section.settings.accent_font | font_face: font_display: 'swap' }}
+
+  #shopify-section-{{ section.id }} {
+    background-color: {{ section.settings.bg_color }};
+  }
+
+  .editorial-text-wrapper-{{ section.id }} {
+    width: 100%;
+    margin: 0 auto;
+    max-width: {{ section.settings.max_width }}px;
+    text-align: {{ section.settings.text_alignment }};
+    /* Desktop Padding */
+    padding-top: {{ section.settings.padding_top_d }}px;
+    padding-bottom: {{ section.settings.padding_bottom_d }}px;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .editorial-text-content-{{ section.id }} {
+    color: {{ section.settings.text_color }};
+    line-height: {{ section.settings.line_height }};
+    /* Desktop Font Size & Spacing */
+    font-size: {{ section.settings.font_size_d }}px;
+    letter-spacing: {{ section.settings.letter_spacing_d }}px;
+    font-family: {{ section.settings.main_font.family }}, {{ section.settings.main_font.fallback_families }};
+    font-weight: {{ section.settings.main_font.weight }};
+    font-style: {{ section.settings.main_font.style }};
+  }
+
+  .editorial-text-content-{{ section.id }} p {
+    margin: 0;
+  }
+
+  /* MAGIC TRICK: 
+     We target the 'em' tag (Italics) to apply the Accent Font.
+  */
+  .editorial-text-content-{{ section.id }} em {
+    font-family: {{ section.settings.accent_font.family }}, {{ section.settings.accent_font.fallback_families }};
+    font-style: italic; /* Forces italic visual */
+    font-weight: 400;
+    
+    /* Desktop Accent Font Size & Spacing */
+    font-size: {{ section.settings.accent_font_size_d }}px;
+    letter-spacing: {{ section.settings.accent_letter_spacing_d }}px;
+  }
+
+  /* Mobile Responsive Styles */
+  @media screen and (max-width: 768px) {
+    .editorial-text-wrapper-{{ section.id }} {
+      /* Mobile Padding */
+      padding-top: {{ section.settings.padding_top_m }}px;
+      padding-bottom: {{ section.settings.padding_bottom_m }}px;
+    }
+
+    .editorial-text-content-{{ section.id }} {
+      /* Mobile Font Size & Spacing */
+      font-size: {{ section.settings.font_size_m }}px;
+      letter-spacing: {{ section.settings.letter_spacing_m }}px;
+    }
+
+    .editorial-text-content-{{ section.id }} em {
+       /* Mobile Accent Font Size & Spacing */
+      font-size: {{ section.settings.accent_font_size_m }}px;
+      letter-spacing: {{ section.settings.accent_letter_spacing_m }}px;
+    }
+  }
+{% endstyle %}
+
+<div class="editorial-text-wrapper-{{ section.id }}">
+  <div class="editorial-text-content-{{ section.id }}">
+    {% if section.settings.text != blank %}
+      {{ section.settings.text }}
+    {% else %}
+      <p>Designed to <em>transcend</em> seasons, made to live in your wardrobe <em>forever</em>.</p>
+    {% endif %}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Editorial Text",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "Text",
+      "default": "<p>Designed to <em>transcend</em> seasons, made to live in your wardrobe <em>forever</em>.</p>",
+      "info": "Highlight words and click 'Italic' (the 'I' icon) to apply the Accent Font style."
+    },
+    {
+      "type": "header",
+      "content": "Fonts & Colors"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Background Color",
+      "default": "#F8F8F8"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text Color",
+      "default": "#1a1a1a"
+    },
+    {
+      "type": "font_picker",
+      "id": "main_font",
+      "label": "Main Font",
+      "default": "assistant_n4"
+    },
+    {
+      "type": "font_picker",
+      "id": "accent_font",
+      "label": "Accent Font (for Italic words)",
+      "default": "garamond_i4",
+      "info": "This font applies to any word you italicize in the text box."
+    },
+    {
+      "type": "range",
+      "id": "max_width",
+      "min": 400,
+      "max": 1200,
+      "step": 20,
+      "unit": "px",
+      "label": "Content Max Width",
+      "default": 800
+    },
+    {
+      "type": "select",
+      "id": "text_alignment",
+      "label": "Text Alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "range",
+      "id": "line_height",
+      "min": 1.0,
+      "max": 2.0,
+      "step": 0.1,
+      "label": "Line Height",
+      "default": 1.4
+    },
+    {
+      "type": "header",
+      "content": "Desktop Settings"
+    },
+    {
+      "type": "range",
+      "id": "font_size_d",
+      "min": 12,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "Main Font Size",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "letter_spacing_d",
+      "min": -2,
+      "max": 10,
+      "step": 0.5,
+      "unit": "px",
+      "label": "Main Letter Spacing",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "accent_font_size_d",
+      "min": 12,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "Accent Font Size",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "accent_letter_spacing_d",
+      "min": -2,
+      "max": 10,
+      "step": 0.5,
+      "unit": "px",
+      "label": "Accent Letter Spacing",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_top_d",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding Top",
+      "default": 100
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_d",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding Bottom",
+      "default": 100
+    },
+    {
+      "type": "header",
+      "content": "Mobile Settings"
+    },
+    {
+      "type": "range",
+      "id": "font_size_m",
+      "min": 10,
+      "max": 60,
+      "step": 1,
+      "unit": "px",
+      "label": "Main Font Size",
+      "default": 18
+    },
+    {
+      "type": "range",
+      "id": "letter_spacing_m",
+      "min": -2,
+      "max": 10,
+      "step": 0.5,
+      "unit": "px",
+      "label": "Main Letter Spacing",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "accent_font_size_m",
+      "min": 10,
+      "max": 60,
+      "step": 1,
+      "unit": "px",
+      "label": "Accent Font Size",
+      "default": 18
+    },
+    {
+      "type": "range",
+      "id": "accent_letter_spacing_m",
+      "min": -2,
+      "max": 10,
+      "step": 0.5,
+      "unit": "px",
+      "label": "Accent Letter Spacing",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_top_m",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding Top",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_m",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding Bottom",
+      "default": 60
+    }
+  ],
+  "presets": [
+    {
+      "name": "Editorial Text"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,340 @@
+{% doc %}
+  @prompt
+    create a shipping delivery expected date section with the automatic location update of their clients location
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-delivery-date-{{ ai_gen_id }} {
+    padding: {{ block.settings.padding }}px;
+    background-color: {{ block.settings.background_color }};
+    border-radius: {{ block.settings.border_radius }}px;
+    border: {{ block.settings.border_width }}px solid {{ block.settings.border_color }};
+  }
+
+  .ai-delivery-date__content-{{ ai_gen_id }} {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .ai-delivery-date__icon-{{ ai_gen_id }} {
+    flex-shrink: 0;
+    width: {{ block.settings.icon_size }}px;
+    height: {{ block.settings.icon_size }}px;
+    color: {{ block.settings.icon_color }};
+  }
+
+  .ai-delivery-date__text-wrapper-{{ ai_gen_id }} {
+    flex-grow: 1;
+  }
+
+  .ai-delivery-date__heading-{{ ai_gen_id }} {
+    margin: 0 0 4px 0;
+    font-size: {{ block.settings.heading_size }}px;
+    font-weight: 600;
+    color: {{ block.settings.text_color }};
+  }
+
+  .ai-delivery-date__info-{{ ai_gen_id }} {
+    margin: 0;
+    font-size: {{ block.settings.text_size }}px;
+    color: {{ block.settings.text_color }};
+  }
+
+  .ai-delivery-date__date-{{ ai_gen_id }} {
+    font-weight: 600;
+    color: {{ block.settings.highlight_color }};
+  }
+
+  .ai-delivery-date__location-{{ ai_gen_id }} {
+    font-weight: 500;
+  }
+
+  .ai-delivery-date__loading-{{ ai_gen_id }} {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid {{ block.settings.text_color }};
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: ai-delivery-spin-{{ ai_gen_id }} 0.6s linear infinite;
+  }
+
+  @keyframes ai-delivery-spin-{{ ai_gen_id }} {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .ai-delivery-date__content-{{ ai_gen_id }} {
+      gap: 10px;
+    }
+
+    .ai-delivery-date__icon-{{ ai_gen_id }} {
+      width: {{ block.settings.icon_size | times: 0.8 }}px;
+      height: {{ block.settings.icon_size | times: 0.8 }}px;
+    }
+
+    .ai-delivery-date__heading-{{ ai_gen_id }} {
+      font-size: {{ block.settings.heading_size | times: 0.9 }}px;
+    }
+
+    .ai-delivery-date__info-{{ ai_gen_id }} {
+      font-size: {{ block.settings.text_size | times: 0.9 }}px;
+    }
+  }
+{% endstyle %}
+
+<delivery-date-{{ ai_gen_id }}
+  class="ai-delivery-date-{{ ai_gen_id }}"
+  data-min-days="{{ block.settings.min_delivery_days }}"
+  data-max-days="{{ block.settings.max_delivery_days }}"
+  {{ block.shopify_attributes }}
+>
+  <div class="ai-delivery-date__content-{{ ai_gen_id }}">
+    <div class="ai-delivery-date__icon-{{ ai_gen_id }}">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <rect x="1" y="3" width="15" height="13"></rect>
+        <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+        <circle cx="5.5" cy="18.5" r="2.5"></circle>
+        <circle cx="18.5" cy="18.5" r="2.5"></circle>
+      </svg>
+    </div>
+    <div class="ai-delivery-date__text-wrapper-{{ ai_gen_id }}">
+      <h3 class="ai-delivery-date__heading-{{ ai_gen_id }}">{{ block.settings.heading }}</h3>
+      <p class="ai-delivery-date__info-{{ ai_gen_id }}">
+        <span class="ai-delivery-date__message-{{ ai_gen_id }}">
+          <span class="ai-delivery-date__loading-{{ ai_gen_id }}"></span>
+        </span>
+      </p>
+    </div>
+  </div>
+</delivery-date-{{ ai_gen_id }}>
+
+<script>
+  (function() {
+    class DeliveryDate{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+        this.minDays = parseInt(this.dataset.minDays) || 3;
+        this.maxDays = parseInt(this.dataset.maxDays) || 7;
+        this.messageElement = this.querySelector('.ai-delivery-date__message-{{ ai_gen_id }}');
+      }
+
+      connectedCallback() {
+        this.detectLocation();
+      }
+
+      detectLocation() {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              this.fetchLocationName(position.coords.latitude, position.coords.longitude);
+            },
+            () => {
+              this.showDefaultMessage();
+            }
+          );
+        } else {
+          this.showDefaultMessage();
+        }
+      }
+
+      fetchLocationName(lat, lon) {
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
+          .then(response => response.json())
+          .then(data => {
+            const city = data.address.city || data.address.town || data.address.village || data.address.state || 'your location';
+            this.showDeliveryMessage(city);
+          })
+          .catch(() => {
+            this.showDefaultMessage();
+          });
+      }
+
+      showDeliveryMessage(location) {
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() + this.minDays);
+        
+        const endDate = new Date();
+        endDate.setDate(endDate.getDate() + this.maxDays);
+
+        const formatDate = (date) => {
+          const options = { month: 'short', day: 'numeric' };
+          return date.toLocaleDateString('en-US', options);
+        };
+
+        this.messageElement.innerHTML = `Delivery to <span class="ai-delivery-date__location-{{ ai_gen_id }}">${location}</span> by <span class="ai-delivery-date__date-{{ ai_gen_id }}">${formatDate(startDate)} - ${formatDate(endDate)}</span>`;
+      }
+
+      showDefaultMessage() {
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() + this.minDays);
+        
+        const endDate = new Date();
+        endDate.setDate(endDate.getDate() + this.maxDays);
+
+        const formatDate = (date) => {
+          const options = { month: 'short', day: 'numeric' };
+          return date.toLocaleDateString('en-US', options);
+        };
+
+        this.messageElement.innerHTML = `Estimated delivery by <span class="ai-delivery-date__date-{{ ai_gen_id }}">${formatDate(startDate)} - ${formatDate(endDate)}</span>`;
+      }
+    }
+
+    customElements.define('delivery-date-{{ ai_gen_id }}', DeliveryDate{{ ai_gen_id }});
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Delivery date estimator",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Fast Shipping"
+    },
+    {
+      "type": "range",
+      "id": "min_delivery_days",
+      "min": 1,
+      "max": 14,
+      "step": 1,
+      "unit": "d",
+      "label": "Minimum delivery days",
+      "default": 3
+    },
+    {
+      "type": "range",
+      "id": "max_delivery_days",
+      "min": 1,
+      "max": 30,
+      "step": 1,
+      "unit": "d",
+      "label": "Maximum delivery days",
+      "default": 7
+    },
+    {
+      "type": "header",
+      "content": "Style"
+    },
+    {
+      "type": "range",
+      "id": "padding",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "Padding",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "border_radius",
+      "min": 0,
+      "max": 20,
+      "step": 2,
+      "unit": "px",
+      "label": "Border radius",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "border_width",
+      "min": 0,
+      "max": 4,
+      "step": 1,
+      "unit": "px",
+      "label": "Border width",
+      "default": 1
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background",
+      "default": "#f5f5f5"
+    },
+    {
+      "type": "color",
+      "id": "border_color",
+      "label": "Border",
+      "default": "#e6e6e6"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "highlight_color",
+      "label": "Highlight",
+      "default": "#008060"
+    },
+    {
+      "type": "color",
+      "id": "icon_color",
+      "label": "Icon",
+      "default": "#000000"
+    },
+    {
+      "type": "header",
+      "content": "Typography"
+    },
+    {
+      "type": "range",
+      "id": "heading_size",
+      "min": 12,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "label": "Heading size",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "text_size",
+      "min": 10,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Text size",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "icon_size",
+      "min": 20,
+      "max": 48,
+      "step": 2,
+      "unit": "px",
+      "label": "Icon size",
+      "default": 32
+    }
+  ],
+  "presets": [
+    {
+      "name": "Delivery date estimator"
+    }
+  ]
+}
+{% endschema %}

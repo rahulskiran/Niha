@@ -1,0 +1,321 @@
+{% schema %}
+{
+  "name": "Odd Muse Size Chart",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading Text",
+      "default": "Size Chart"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Background Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text Color",
+      "default": "#000000"
+    },
+    {
+        "type": "color",
+        "id": "accent_color",
+        "label": "Accent Color (Toggle)",
+        "default": "#000000"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Odd Muse Size Chart"
+    }
+  ]
+}
+{% endschema %}
+
+<div class="om-section-wrapper" style="background-color: {{ section.settings.bg_color }}; color: {{ section.settings.text_color }};">
+    <div class="om-size-chart-section">
+        
+        <div class="om-header">
+            <!-- Added fallback so heading always shows -->
+            <h2 class="om-title">{{ section.settings.heading | default: "Size Chart" }}</h2>
+            
+            <!-- Toggle Switch with Unique ID for this section instance -->
+            <div class="om-toggle-wrapper" id="unitToggle-{{ section.id }}" data-unit="in">
+                <span class="om-toggle-label active" id="labelIn-{{ section.id }}">IN</span>
+                <div class="om-switch"></div>
+                <span class="om-toggle-label" id="labelCm-{{ section.id }}">CM</span>
+            </div>
+        </div>
+
+        <!-- Unified Table View for Desktop & Mobile -->
+        <div class="om-table-container">
+            <table class="om-table">
+                <thead>
+                    <tr>
+                        <th>Alpha</th>
+                        <th>XS</th>
+                        <th>S</th>
+                        <th>M</th>
+                        <th>L</th>
+                        <th>XL</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Bust</td>
+                        <td><span class="measure">32</span></td>
+                        <td><span class="measure">34</span></td>
+                        <td><span class="measure">36</span></td>
+                        <td><span class="measure">38</span></td>
+                        <td><span class="measure">40</span></td>
+                    </tr>
+                    <tr>
+                        <td>Waist</td>
+                        <td><span class="measure">26</span></td>
+                        <td><span class="measure">28</span></td>
+                        <td><span class="measure">30</span></td>
+                        <td><span class="measure">32</span></td>
+                        <td><span class="measure">34</span></td>
+                    </tr>
+                    <tr>
+                        <td>Hip</td>
+                        <td><span class="measure">36</span></td>
+                        <td><span class="measure">38</span></td>
+                        <td><span class="measure">40</span></td>
+                        <td><span class="measure">42</span></td>
+                        <td><span class="measure">44</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Mobile Hint -->
+        <div class="om-mobile-hint">
+            SCROLL RIGHT FOR MORE SIZES &rarr;
+        </div>
+
+    </div>
+</div>
+
+<style>
+    /* Section Wrapper */
+    .om-section-wrapper {
+        padding: 60px 20px;
+        display: flex;
+        justify-content: center;
+        /* Colors are handled inline by Liquid above */
+    }
+
+    .om-size-chart-section {
+        width: 100%;
+        max-width: 900px;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; 
+    }
+
+    .om-header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .om-title {
+        font-size: 28px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        font-weight: 400;
+        margin: 0 0 15px 0;
+        color: inherit;
+    }
+
+    /* Toggle Logic */
+    .om-toggle-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .om-toggle-label {
+        opacity: 0.4;
+        transition: opacity 0.3s ease;
+    }
+
+    .om-toggle-label.active {
+        opacity: 1;
+    }
+
+    .om-switch {
+        position: relative;
+        width: 44px;
+        height: 24px;
+        background-color: #e0e0e0;
+        border-radius: 24px;
+        transition: 0.3s;
+    }
+
+    .om-switch::after {
+        content: '';
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 20px;
+        height: 20px;
+        background-color: white;
+        border-radius: 50%;
+        transition: 0.3s;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    /* Active State Color derived from settings */
+    .om-toggle-wrapper[data-unit="cm"] .om-switch {
+        background-color: {{ section.settings.accent_color }};
+    }
+    .om-toggle-wrapper[data-unit="cm"] .om-switch::after {
+        transform: translateX(20px);
+    }
+
+    /* Table Styles */
+    .om-table-container {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch; 
+        position: relative;
+        scrollbar-width: thin;
+        /* Smooth scrolling fix */
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+    }
+
+    .om-table {
+        width: 100%;
+        border-collapse: separate; 
+        border-spacing: 0;
+        min-width: 500px; /* Forces scroll on small screens */
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: inherit;
+    }
+
+    .om-table th, .om-table td {
+        padding: 18px 10px;
+        text-align: center;
+        border-bottom: 1px solid rgba(0,0,0,0.1);
+        transition: background 0.2s;
+        /* CRITICAL FIX: Prevent text wrapping */
+        white-space: nowrap;
+        /* Establish stacking context for non-sticky cells */
+        position: relative;
+        z-index: 1;
+    }
+
+    .om-table th {
+        font-weight: 600;
+        border-bottom: 2px solid {{ section.settings.text_color }};
+        padding-bottom: 20px;
+    }
+
+    /* Sticky Left Column Logic - REINFORCED FOR OVERLAP ISSUES */
+    .om-table th:first-child,
+    .om-table td:first-child {
+        position: sticky;
+        left: 0;
+        /* Ensure background matches user setting */
+        background-color: {{ section.settings.bg_color | default: '#ffffff' }};
+        /* Much higher z-index to strictly stay on top */
+        z-index: 20; 
+        text-align: left;
+        padding-left: 10px;
+        font-weight: 600;
+        border-right: 1px solid rgba(0,0,0,0.1); 
+        /* Box shadow covers the seam to prevent visual bleed-through */
+        box-shadow: 2px 0 5px -2px rgba(0,0,0,0.1);
+        background-clip: padding-box;
+    }
+
+    .om-mobile-hint {
+        display: none;
+        margin-top: 15px;
+        text-align: center; 
+        font-size: 10px; 
+        opacity: 0.6; 
+        letter-spacing: 1px;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+        .om-section-wrapper {
+            padding: 30px 0;
+        }
+        .om-size-chart-section {
+            padding: 0 15px;
+        }
+        .om-title {
+            font-size: 22px;
+        }
+        .om-table th, .om-table td {
+            padding: 14px 8px;
+            font-size: 13px;
+        }
+        .om-mobile-hint {
+            display: block;
+        }
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var sectionId = "{{ section.id }}";
+    var toggle = document.getElementById('unitToggle-' + sectionId);
+    var labelIn = document.getElementById('labelIn-' + sectionId);
+    var labelCm = document.getElementById('labelCm-' + sectionId);
+    
+    // Find the container for this specific section
+    // Use .closest() to ensure we only target this section's table
+    var container = toggle.closest('.om-section-wrapper');
+    if(!container) return; // safety check
+    
+    var measures = container.querySelectorAll('.measure');
+
+    // Store original inches
+    measures.forEach(function(m) {
+        m.dataset.inches = m.innerText;
+    });
+
+    toggle.addEventListener('click', function() {
+        var currentUnit = toggle.getAttribute('data-unit');
+        var newUnit = currentUnit === 'in' ? 'cm' : 'in';
+        
+        toggle.setAttribute('data-unit', newUnit);
+
+        if (newUnit === 'cm') {
+            labelIn.classList.remove('active');
+            labelCm.classList.add('active');
+            
+            measures.forEach(function(m) {
+                var inches = parseFloat(m.dataset.inches);
+                // 1 inch = 2.54 cm, rounded to nearest whole number for cleaner look
+                m.innerText = Math.round(inches * 2.54); 
+            });
+
+        } else {
+            labelCm.classList.remove('active');
+            labelIn.classList.add('active');
+
+            measures.forEach(function(m) {
+                m.innerText = m.dataset.inches;
+            });
+        }
+    });
+});
+</script>
