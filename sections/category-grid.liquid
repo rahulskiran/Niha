@@ -33,6 +33,13 @@
     gap: var(--catgrid-gap, 24px);
   }
 
+  /* Shopify wraps every block-in-slot in its own div; without this the tile inside sizes
+     to its own content instead of stretching to fill the grid column, which is what let
+     each label+arrow row shrink to fit its text instead of reaching the tile's own edge. */
+  .catgrid > .shopify-block {
+    display: contents;
+  }
+
   @media screen and (min-width: 600px) {
     .catgrid {
       grid-template-columns: repeat(min(3, var(--catgrid-columns, 4)), 1fr);
