@@ -27,22 +27,41 @@
     background: var(--catgrid-bg, #f2f0ea);
   }
 
+  /* Below 600px: a native horizontally-scrolling row, no JS. Snap points and
+     -webkit-overflow-scrolling keep it fast and finger-driven, with a peek of the next
+     tile as the scroll affordance instead of relying on visible scrollbars/arrows. */
   .catgrid {
-    display: grid;
-    grid-template-columns: repeat(min(2, var(--catgrid-columns, 4)), 1fr);
+    display: flex;
     gap: var(--catgrid-gap, 24px);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--catgrid-padding-inline, 40px);
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  .catgrid::-webkit-scrollbar {
+    display: none;
   }
 
   /* Shopify wraps every block-in-slot in its own div; without this the tile inside sizes
-     to its own content instead of stretching to fill the grid column, which is what let
+     to its own content instead of stretching to fill the flex/grid slot, which is what let
      each label+arrow row shrink to fit its text instead of reaching the tile's own edge. */
   .catgrid > .shopify-block {
     display: contents;
   }
 
+  .catgrid > .shopify-block > .cattile {
+    flex: 0 0 44%;
+    scroll-snap-align: start;
+  }
+
   @media screen and (min-width: 600px) {
     .catgrid {
+      display: grid;
       grid-template-columns: repeat(min(3, var(--catgrid-columns, 4)), 1fr);
+      overflow-x: visible;
     }
   }
 
@@ -95,7 +114,7 @@
       "max": 80,
       "step": 4,
       "unit": "px",
-      "default": 0
+      "default": 40
     },
     {
       "type": "range",
