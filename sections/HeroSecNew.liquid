@@ -57,6 +57,21 @@
       -%}
 
       {%- if video != blank -%}
+        {%- liquid
+          # A browser plays the first <source> it can decode, and Shopify hands back every rendition
+          # it generated, so leaving them in their original order serves most visitors the smallest
+          # one. Listing the mp4 renditions largest first pins the hero to the resolution that was
+          # uploaded, with the smaller files kept after it as fallbacks.
+          assign mp4_sources = video.sources | where: 'format', 'mp4' | sort: 'height' | reverse
+          assign stream_sources = video.sources | where: 'format', 'm3u8'
+
+          if mp4_sources.size > 0
+            assign video_sources = mp4_sources | concat: stream_sources
+          else
+            assign video_sources = video.sources
+          endif
+        -%}
+
         <video
           class="herovideo__video herovideo__video--{{ viewport }}"
           data-viewport="{{ viewport }}"
@@ -74,7 +89,7 @@
             loop
           {% endif %}
         >
-          {%- for source in video.sources -%}
+          {%- for source in video_sources -%}
             <source data-src="{{ source.url }}" type="{{ source.mime_type }}">
           {%- endfor -%}
         </video>
