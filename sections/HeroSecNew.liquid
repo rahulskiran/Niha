@@ -1,0 +1,467 @@
+{%- liquid
+  assign desktop_video = section.settings.video_desktop
+  assign mobile_video = section.settings.video_mobile
+
+  assign desktop_poster = section.settings.poster_desktop | default: desktop_video.preview_image
+  assign mobile_poster = section.settings.poster_mobile | default: mobile_video.preview_image
+  assign mobile_poster = mobile_poster | default: desktop_poster
+
+  # Only split the markup when both videos are set. With a single video the same element has to
+  # stay visible at every breakpoint.
+  assign viewports = 'all'
+  if desktop_video != blank and mobile_video != blank
+    assign viewports = 'desktop,mobile'
+  endif
+  assign viewports = viewports | split: ','
+
+  assign autoplay_blocked_label = 'Play video'
+-%}
+
+{%- capture frame_style -%}
+  {%- if section.settings.aspect_ratio_desktop == 'full' -%}
+    --herovideo-ratio-desktop: auto; --herovideo-height-desktop: 100svh;
+  {%- else -%}
+    --herovideo-ratio-desktop: {{ section.settings.aspect_ratio_desktop }}; --herovideo-height-desktop: auto;
+  {%- endif -%}
+  {%- if section.settings.aspect_ratio_mobile == 'full' -%}
+    --herovideo-ratio-mobile: auto; --herovideo-height-mobile: 100svh;
+  {%- else -%}
+    --herovideo-ratio-mobile: {{ section.settings.aspect_ratio_mobile }}; --herovideo-height-mobile: auto;
+  {%- endif -%}
+  --herovideo-background: {{ section.settings.background_color }};
+  --herovideo-overlay-color: {{ section.settings.overlay_color }};
+  --herovideo-overlay-opacity: {{ section.settings.overlay_opacity | times: 1.0 | divided_by: 100.0 }};
+{%- endcapture -%}
+
+<hero-video-sec
+  class="herovideo"
+  style="{{ frame_style }}"
+  data-state="paused"
+  data-respect-reduced-motion="{{ section.settings.respect_reduced_motion }}"
+  {{ section.shopify_attributes }}
+>
+  <div class="herovideo__frame">
+    {%- for viewport in viewports -%}
+      {%- liquid
+        if viewport == 'mobile'
+          assign video = mobile_video
+          assign poster = mobile_poster
+        elsif viewport == 'desktop'
+          assign video = desktop_video
+          assign poster = desktop_poster
+        else
+          # A single video is used at every breakpoint, whichever one the merchant picked
+          assign video = desktop_video | default: mobile_video
+          assign poster = desktop_poster | default: mobile_poster
+        endif
+      -%}
+
+      {%- if video != blank -%}
+        <video
+          class="herovideo__video herovideo__video--{{ viewport }}"
+          data-viewport="{{ viewport }}"
+          {% if poster != blank %}
+            poster="{{ poster | image_url: width: 1600 }}"
+          {% endif %}
+          autoplay
+          muted
+          playsinline
+          preload="none"
+          tabindex="-1"
+          disablepictureinpicture
+          {% if section.settings.video_loop %}
+            loop
+          {% endif %}
+        >
+          {%- for source in video.sources -%}
+            <source data-src="{{ source.url }}" type="{{ source.mime_type }}">
+          {%- endfor -%}
+        </video>
+      {%- endif -%}
+
+      {%- assign poster_class = 'herovideo__poster herovideo__poster--' | append: viewport -%}
+
+      {%- if poster != blank -%}
+        {{
+          poster
+          | image_url: width: 3000
+          | image_tag:
+            class: poster_class,
+            widths: '480, 720, 990, 1200, 1600, 2000, 2400, 3000',
+            sizes: '100vw',
+            loading: 'eager',
+            fetchpriority: 'high'
+        }}
+      {%- elsif video == blank -%}
+        <div class="herovideo__poster herovideo__poster--{{ viewport }} herovideo__placeholder">
+          {{ 'lifestyle-1' | placeholder_svg_tag }}
+        </div>
+      {%- endif -%}
+    {%- endfor -%}
+
+    <div class="herovideo__overlay"></div>
+
+    {%- if desktop_video != blank or mobile_video != blank -%}
+      <button class="herovideo__play" type="button" data-play-button hidden>
+        <span class="herovideo__play-label">{{ autoplay_blocked_label }}</span>
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+          <path d="M8 5.14v13.72a1 1 0 0 0 1.54.84l10.29-6.86a1 1 0 0 0 0-1.68L9.54 4.3A1 1 0 0 0 8 5.14Z" />
+        </svg>
+      </button>
+    {%- endif -%}
+  </div>
+</hero-video-sec>
+
+<script>
+  (function () {
+    if (customElements.get('hero-video-sec')) return;
+
+    class HeroVideoSec extends HTMLElement {
+      connectedCallback() {
+        this.videos = Array.from(this.querySelectorAll('.herovideo__video'));
+        this.playButton = this.querySelector('[data-play-button]');
+        this.mobileQuery = window.matchMedia('(max-width: 749px)');
+        this.motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+        this.active = null;
+
+        this.handleBreakpoint = () => this.activate();
+        this.mobileQuery.addEventListener('change', this.handleBreakpoint);
+
+        for (const video of this.videos) {
+          video.addEventListener('playing', () => this.sync(video, 'playing'));
+          video.addEventListener('pause', () => this.sync(video, 'paused'));
+          video.addEventListener('ended', () => this.sync(video, 'paused'));
+          video.addEventListener('error', () => this.sync(video, 'paused'));
+        }
+
+        if (this.playButton) {
+          this.playButton.addEventListener('click', () => this.play(true));
+        }
+
+        // Playing a hero that has scrolled away wastes battery and decoder time on phones, so the
+        // video runs only while some part of it is on screen.
+        this.observer = new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries) {
+              if (entry.isIntersecting) {
+                if (this.autoplayAllowed) this.play();
+              } else if (this.active) {
+                this.active.pause();
+              }
+            }
+          },
+          { threshold: 0 }
+        );
+        this.observer.observe(this);
+
+        this.activate();
+      }
+
+      disconnectedCallback() {
+        this.mobileQuery.removeEventListener('change', this.handleBreakpoint);
+        this.observer.disconnect();
+      }
+
+      get autoplayAllowed() {
+        return !(this.dataset.respectReducedMotion === 'true' && this.motionQuery.matches);
+      }
+
+      /** Picks the video that matches the current breakpoint and starts it. */
+      activate() {
+        const wanted = this.mobileQuery.matches ? 'mobile' : 'desktop';
+        const next = this.videos.find((video) => video.dataset.viewport === wanted) || this.videos[0];
+
+        if (!next || next === this.active) return;
+
+        if (this.active) this.active.pause();
+        this.active = next;
+        this.load(next);
+
+        if (this.autoplayAllowed) {
+          this.play();
+        } else {
+          this.setState('paused');
+        }
+      }
+
+      /**
+       * Sources are held in data-src so the breakpoint that isn't showing never downloads a video.
+       */
+      load(video) {
+        if (video.dataset.loaded) return;
+
+        const sources = video.querySelectorAll('source[data-src]');
+
+        if (!sources.length) return;
+
+        for (const source of sources) source.setAttribute('src', source.dataset.src);
+
+        video.dataset.loaded = 'true';
+        video.preload = 'auto';
+        video.load();
+      }
+
+      play(userInitiated) {
+        const video = this.active;
+
+        if (!video) return;
+
+        // Safari won't autoplay anything it doesn't consider muted, and it doesn't reliably take
+        // the muted attribute from markup it didn't parse itself.
+        video.muted = true;
+
+        const played = video.play();
+
+        if (!played) return;
+
+        played.then(
+          () => this.setState('playing'),
+          () => {
+            // Refused by the device: Low Power Mode, Data Saver, or a first-visit autoplay policy.
+            // The poster stays up and the video becomes tap-to-play.
+            this.setState(userInitiated ? 'paused' : 'blocked');
+          }
+        );
+      }
+
+      sync(video, state) {
+        if (video === this.active) this.setState(state);
+      }
+
+      setState(state) {
+        this.dataset.state = state;
+
+        if (this.playButton) this.playButton.hidden = state === 'playing';
+      }
+    }
+
+    customElements.define('hero-video-sec', HeroVideoSec);
+  })();
+</script>
+
+{% stylesheet %}
+  .herovideo {
+    display: block;
+    position: relative;
+  }
+
+  .herovideo__frame {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: var(--herovideo-ratio-mobile, 9 / 16);
+    height: var(--herovideo-height-mobile, auto);
+    background-color: var(--herovideo-background, #000000);
+  }
+
+  .herovideo__video,
+  .herovideo__poster {
+    display: block;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .herovideo__poster {
+    opacity: 1;
+    transition: opacity 0.4s ease;
+  }
+
+  /* The poster covers the video until playback actually starts, and comes back if it stops */
+  .herovideo[data-state='playing'] .herovideo__poster {
+    opacity: 0;
+  }
+
+  .herovideo__placeholder svg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .herovideo__video--desktop,
+  .herovideo__poster--desktop {
+    display: none;
+  }
+
+  .herovideo__overlay {
+    position: absolute;
+    inset: 0;
+    background-color: var(--herovideo-overlay-color, #000000);
+    opacity: var(--herovideo-overlay-opacity, 0);
+    pointer-events: none;
+  }
+
+  .herovideo__play {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #ffffff;
+    cursor: pointer;
+    appearance: none;
+  }
+
+  .herovideo__play[hidden] {
+    display: none;
+  }
+
+  .herovideo__play svg {
+    width: 4.4rem;
+    height: 4.4rem;
+    filter: drop-shadow(0 2px 8px rgb(0 0 0 / 0.45));
+  }
+
+  .herovideo__play-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  @media screen and (min-width: 750px) {
+    .herovideo__frame {
+      aspect-ratio: var(--herovideo-ratio-desktop, 16 / 9);
+      height: var(--herovideo-height-desktop, auto);
+    }
+
+    .herovideo__video--desktop,
+    .herovideo__poster--desktop {
+      display: block;
+    }
+
+    .herovideo__video--mobile,
+    .herovideo__poster--mobile {
+      display: none;
+    }
+
+    .herovideo__play svg {
+      width: 6rem;
+      height: 6rem;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Hero video",
+  "tag": "section",
+  "class": "herovideo-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Desktop"
+    },
+    {
+      "type": "video",
+      "id": "video_desktop",
+      "label": "Desktop video"
+    },
+    {
+      "type": "image_picker",
+      "id": "poster_desktop",
+      "label": "Desktop poster image",
+      "info": "Shown until the video starts, and again if the device refuses to autoplay it. Defaults to the video's own preview image."
+    },
+    {
+      "type": "select",
+      "id": "aspect_ratio_desktop",
+      "label": "Desktop height",
+      "options": [
+        { "value": "full", "label": "Full screen" },
+        { "value": "21/9", "label": "Cinematic (21:9)" },
+        { "value": "16/9", "label": "Landscape (16:9)" },
+        { "value": "4/3", "label": "Classic (4:3)" },
+        { "value": "1/1", "label": "Square (1:1)" }
+      ],
+      "default": "16/9"
+    },
+    {
+      "type": "header",
+      "content": "Mobile"
+    },
+    {
+      "type": "video",
+      "id": "video_mobile",
+      "label": "Mobile video",
+      "info": "Leave empty to use the desktop video on phones."
+    },
+    {
+      "type": "image_picker",
+      "id": "poster_mobile",
+      "label": "Mobile poster image",
+      "info": "Defaults to the mobile video's preview image, then to the desktop poster."
+    },
+    {
+      "type": "select",
+      "id": "aspect_ratio_mobile",
+      "label": "Mobile height",
+      "options": [
+        { "value": "full", "label": "Full screen" },
+        { "value": "9/16", "label": "Portrait (9:16)" },
+        { "value": "4/5", "label": "Tall (4:5)" },
+        { "value": "1/1", "label": "Square (1:1)" },
+        { "value": "16/9", "label": "Landscape (16:9)" }
+      ],
+      "default": "9/16"
+    },
+    {
+      "type": "header",
+      "content": "Playback"
+    },
+    {
+      "type": "checkbox",
+      "id": "video_loop",
+      "label": "Loop video",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "respect_reduced_motion",
+      "label": "Respect reduced motion",
+      "info": "Shows the poster instead of autoplaying for visitors whose device asks for reduced motion.",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Appearance"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "overlay_color",
+      "label": "Overlay color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "Overlay opacity",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "Hero video New"
+    }
+  ]
+}
+{% endschema %}
