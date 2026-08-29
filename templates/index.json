@@ -432,6 +432,31 @@
         "display_duration": 6,
         "delay_between": 60
       }
+    },
+    "product_grid_hbwjwk": {
+      "type": "product-grid",
+      "name": "Product grid",
+      "settings": {
+        "collection": "best-sellers",
+        "max_products": 8,
+        "mark": "",
+        "mark_sup": "",
+        "columns": 4,
+        "column_gap": 18,
+        "row_gap": 48,
+        "padding_block_start": 64,
+        "padding_block_end": 96,
+        "show_discount_tag": true,
+        "show_add_to_cart": true,
+        "add_to_cart_label": "Add to cart",
+        "sold_out_label": "Sold out",
+        "currency_prefix": "Rs.",
+        "color_background": "#F2F0EA",
+        "color_ink": "#201C19",
+        "color_muted": "#8B8577",
+        "color_line": "#DCD7CB",
+        "color_wine": "#5B332F"
+      }
     }
   },
   "order": [
@@ -441,6 +466,7 @@
     "pagefly_section_HxY8xH",
     "new1_fFtKqV",
     "product_list_fa6P9H",
-    "recentsale_EtUKx8"
+    "recentsale_EtUKx8",
+    "product_grid_hbwjwk"
   ]
 }
