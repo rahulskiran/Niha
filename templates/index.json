@@ -83,8 +83,10 @@
       "name": "Category grid",
       "settings": {
         "columns": 4,
+        "mobile_tiles_visible": 2.2,
         "gap": 8,
-        "padding_inline": 40,
+        "padding_inline_desktop": 40,
+        "padding_inline_mobile": 20,
         "padding_block_start": 48,
         "padding_block_end": 48,
         "label_font": "accent",

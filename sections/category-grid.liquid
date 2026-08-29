@@ -8,7 +8,9 @@
   --catgrid-accent: {{ settings.color_accent }};
   --catgrid-columns: {{ settings.columns }};
   --catgrid-gap: {{ settings.gap }}px;
-  --catgrid-padding-inline: {{ settings.padding_inline }}px;
+  --catgrid-padding-inline: {{ settings.padding_inline_mobile }}px;
+  --catgrid-padding-inline-desktop: {{ settings.padding_inline_desktop }}px;
+  --catgrid-mobile-visible: {{ settings.mobile_tiles_visible }};
   --catgrid-padding-block-start: {{ settings.padding_block_start }}px;
   --catgrid-padding-block-end: {{ settings.padding_block_end }}px;
   --catgrid-label-font-family: var(--font-{{ settings.label_font }}--family);
@@ -52,12 +54,18 @@
     display: contents;
   }
 
+  /* Tile width solved from how many should be visible at once: N tiles plus (N-1)
+     gaps must fill the row, so each tile is (100% - (N-1) * gap) / N wide. */
   .catgrid > .shopify-block > .cattile {
-    flex: 0 0 44%;
+    flex: 0 0 calc((100% - (var(--catgrid-mobile-visible, 2.2) - 1) * var(--catgrid-gap, 24px)) / var(--catgrid-mobile-visible, 2.2));
     scroll-snap-align: start;
   }
 
   @media screen and (min-width: 600px) {
+    .catgrid-page {
+      padding-inline: var(--catgrid-padding-inline-desktop, 40px);
+    }
+
     .catgrid {
       display: grid;
       grid-template-columns: repeat(min(3, var(--catgrid-columns, 4)), 1fr);
@@ -90,11 +98,21 @@
     {
       "type": "range",
       "id": "columns",
-      "label": "Columns",
+      "label": "Tiles per row (desktop)",
       "min": 2,
       "max": 6,
       "step": 1,
       "default": 4
+    },
+    {
+      "type": "range",
+      "id": "mobile_tiles_visible",
+      "label": "Tiles visible (mobile)",
+      "info": "Fractional values (e.g. 2.2) let the next tile peek in as a scroll hint.",
+      "min": 1,
+      "max": 4,
+      "step": 0.1,
+      "default": 2.2
     },
     {
       "type": "range",
@@ -108,13 +126,23 @@
     },
     {
       "type": "range",
-      "id": "padding_inline",
-      "label": "Side padding",
+      "id": "padding_inline_desktop",
+      "label": "Side padding (desktop)",
       "min": 0,
       "max": 80,
       "step": 4,
       "unit": "px",
       "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding_inline_mobile",
+      "label": "Side padding (mobile)",
+      "min": 0,
+      "max": 80,
+      "step": 4,
+      "unit": "px",
+      "default": 20
     },
     {
       "type": "range",
