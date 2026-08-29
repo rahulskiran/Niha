@@ -193,9 +193,10 @@
 
   .pgrid {
     display: grid;
-    /* Mobile-first: never more than 2 columns below 600px, then a graduated ramp up to
-       whichever column count the merchant configured, so a 6-column desktop grid doesn't
-       collapse to 2 in one jump on a tablet. */
+    /* Mobile-first ramp: 2 below 600px, 3 on tablets, 4 across the whole laptop range
+       (900-1439px covers 1024/1280/1366/1440 - the common laptop widths), 5 on larger
+       laptops and small monitors, reaching the merchant's full configured column count
+       only at 1920px and up. */
     grid-template-columns: repeat(min(2, var(--pgrid-columns, 4)), 1fr);
     column-gap: var(--pgrid-column-gap, 18px);
     row-gap: 32px;
@@ -219,13 +220,13 @@
     }
   }
 
-  @media screen and (min-width: 1200px) {
+  @media screen and (min-width: 1440px) {
     .pgrid {
       grid-template-columns: repeat(min(5, var(--pgrid-columns, 4)), 1fr);
     }
   }
 
-  @media screen and (min-width: 1600px) {
+  @media screen and (min-width: 1920px) {
     .pgrid {
       grid-template-columns: repeat(var(--pgrid-columns, 4), 1fr);
     }
