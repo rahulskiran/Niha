@@ -1,20 +1,7 @@
 {%- liquid
-  assign desktop_video = section.settings.video_desktop
-  assign mobile_video = section.settings.video_mobile
-
-  assign desktop_poster = section.settings.poster_desktop | default: desktop_video.preview_image
-  assign mobile_poster = section.settings.poster_mobile | default: mobile_video.preview_image
-  assign mobile_poster = mobile_poster | default: desktop_poster
-
-  # Only split the markup when both videos are set. With a single video the same element has to
-  # stay visible at every breakpoint.
-  assign viewports = 'all'
-  if desktop_video != blank and mobile_video != blank
-    assign viewports = 'desktop,mobile'
-  endif
-  assign viewports = viewports | split: ','
-
   assign autoplay_blocked_label = 'Play video'
+  assign slides = section.blocks | where: 'type', 'slide'
+  assign slide_count = slides.size
 -%}
 
 {%- capture frame_style -%}
@@ -31,6 +18,7 @@
   --herovideo-background: {{ section.settings.background_color }};
   --herovideo-overlay-color: {{ section.settings.overlay_color }};
   --herovideo-overlay-opacity: {{ section.settings.overlay_opacity | times: 1.0 | divided_by: 100.0 }};
+  --herovideo-fade: {{ section.settings.transition_duration }}ms;
 {%- endcapture -%}
 
 <hero-video-sec
@@ -38,92 +26,166 @@
   style="{{ frame_style }}"
   data-state="paused"
   data-respect-reduced-motion="{{ section.settings.respect_reduced_motion }}"
+  data-auto-advance="{{ section.settings.auto_advance }}"
+  data-interval="{{ section.settings.slide_duration | times: 1000 }}"
   {{ section.shopify_attributes }}
 >
   <div class="herovideo__frame">
-    {%- for viewport in viewports -%}
+    {%- for block in slides -%}
       {%- liquid
-        if viewport == 'mobile'
-          assign video = mobile_video
-          assign poster = mobile_poster
-        elsif viewport == 'desktop'
-          assign video = desktop_video
-          assign poster = desktop_poster
-        else
-          # A single video is used at every breakpoint, whichever one the merchant picked
-          assign video = desktop_video | default: mobile_video
-          assign poster = desktop_poster | default: mobile_poster
+        assign desktop_video = block.settings.video_desktop
+        assign mobile_video = block.settings.video_mobile
+
+        assign desktop_poster = block.settings.image_desktop | default: desktop_video.preview_image
+        assign mobile_poster = block.settings.image_mobile | default: mobile_video.preview_image
+        assign mobile_poster = mobile_poster | default: desktop_poster
+
+        # Splitting the markup by breakpoint only pays off when the slide carries a distinct asset
+        # on both sides. A slide given only a mobile image still has to show it on desktop rather
+        # than rendering an empty frame there, so anything one-sided stays a single element.
+        assign has_desktop = false
+        if desktop_video != blank or block.settings.image_desktop != blank
+          assign has_desktop = true
+        endif
+
+        assign has_mobile = false
+        if mobile_video != blank or block.settings.image_mobile != blank
+          assign has_mobile = true
+        endif
+
+        assign viewports = 'all'
+        if has_desktop and has_mobile
+          assign viewports = 'desktop,mobile'
+        endif
+        assign viewports = viewports | split: ','
+
+        # forloop is rebound by the inner viewport loop below, so the slide's own position has to
+        # be captured here. Only the first slide is on screen at load; the rest can wait.
+        assign slide_loading = 'lazy'
+        assign slide_priority = 'auto'
+        if forloop.first
+          assign slide_loading = 'eager'
+          assign slide_priority = 'high'
         endif
       -%}
 
-      {%- if video != blank -%}
-        {%- liquid
-          # A browser plays the first <source> it can decode, and Shopify hands back every rendition
-          # it generated, so leaving them in their original order serves most visitors the smallest
-          # one. Listing the mp4 renditions largest first pins the hero to the resolution that was
-          # uploaded, with the smaller files kept after it as fallbacks.
-          assign mp4_sources = video.sources | where: 'format', 'mp4' | sort: 'height' | reverse
-          assign stream_sources = video.sources | where: 'format', 'm3u8'
+      <div
+        class="herovideo__slide"
+        data-slide
+        data-active="{% if forloop.first %}true{% else %}false{% endif %}"
+        {{ block.shopify_attributes }}
+      >
+        {%- for viewport in viewports -%}
+          {%- liquid
+            if viewport == 'mobile'
+              assign video = mobile_video
+              assign poster = mobile_poster
+            elsif viewport == 'desktop'
+              assign video = desktop_video
+              assign poster = desktop_poster
+            else
+              # Whichever side the merchant actually filled in, shown at every width.
+              assign video = desktop_video | default: mobile_video
+              assign poster = desktop_poster | default: mobile_poster
+            endif
+          -%}
 
-          if mp4_sources.size > 0
-            assign video_sources = mp4_sources | concat: stream_sources
-          else
-            assign video_sources = video.sources
-          endif
-        -%}
+          {%- if video != blank -%}
+            {%- liquid
+              # A browser plays the first <source> it can decode, and Shopify hands back every
+              # rendition it generated, so leaving them in their original order serves most
+              # visitors the smallest one. Listing the mp4 renditions largest first pins the hero
+              # to the resolution that was uploaded, with the smaller files kept as fallbacks.
+              assign mp4_sources = video.sources | where: 'format', 'mp4' | sort: 'height' | reverse
+              assign stream_sources = video.sources | where: 'format', 'm3u8'
 
-        <video
-          class="herovideo__video herovideo__video--{{ viewport }}"
-          data-viewport="{{ viewport }}"
-          {% if poster != blank %}
-            poster="{{ poster | image_url: width: 1600 }}"
-          {% endif %}
-          autoplay
-          muted
-          playsinline
-          webkit-playsinline
-          preload="none"
-          tabindex="-1"
-          disablepictureinpicture
-          {% if section.settings.video_loop %}
-            loop
-          {% endif %}
-        >
-          {%- for source in video_sources -%}
-            <source data-src="{{ source.url }}" type="{{ source.mime_type }}">
-          {%- endfor -%}
-        </video>
-      {%- endif -%}
+              if mp4_sources.size > 0
+                assign video_sources = mp4_sources | concat: stream_sources
+              else
+                assign video_sources = video.sources
+              endif
+            -%}
 
-      {%- assign poster_class = 'herovideo__poster herovideo__poster--' | append: viewport -%}
+            <video
+              class="herovideo__video herovideo__video--{{ viewport }}"
+              data-viewport="{{ viewport }}"
+              {% if poster != blank %}
+                poster="{{ poster | image_url: width: 1600 }}"
+              {% endif %}
+              muted
+              playsinline
+              webkit-playsinline
+              preload="none"
+              tabindex="-1"
+              disablepictureinpicture
+              {% if section.settings.video_loop %}
+                loop
+              {% endif %}
+            >
+              {%- for source in video_sources -%}
+                <source data-src="{{ source.url }}" type="{{ source.mime_type }}">
+              {%- endfor -%}
+            </video>
+          {%- endif -%}
 
-      {%- if poster != blank -%}
-        {{
-          poster
-          | image_url: width: 3000
-          | image_tag:
-            class: poster_class,
-            widths: '480, 720, 990, 1200, 1600, 2000, 2400, 3000',
-            sizes: '100vw',
-            loading: 'eager',
-            fetchpriority: 'high'
-        }}
-      {%- elsif video == blank -%}
-        <div class="herovideo__poster herovideo__poster--{{ viewport }} herovideo__placeholder">
-          {{ 'lifestyle-1' | placeholder_svg_tag }}
-        </div>
-      {%- endif -%}
+          {%- assign poster_class = 'herovideo__poster herovideo__poster--' | append: viewport -%}
+
+          {%- if poster != blank -%}
+            {{
+              poster
+              | image_url: width: 3000
+              | image_tag:
+                class: poster_class,
+                widths: '480, 720, 990, 1200, 1600, 2000, 2400, 3000',
+                sizes: '100vw',
+                loading: slide_loading,
+                fetchpriority: slide_priority
+            }}
+          {%- elsif video == blank -%}
+            <div class="herovideo__poster herovideo__poster--{{ viewport }} herovideo__placeholder">
+              {{ 'lifestyle-1' | placeholder_svg_tag }}
+            </div>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
     {%- endfor -%}
 
     <div class="herovideo__overlay"></div>
 
-    {%- if desktop_video != blank or mobile_video != blank -%}
-      <button class="herovideo__play" type="button" data-play-button hidden>
-        <span class="herovideo__play-label">{{ autoplay_blocked_label }}</span>
-        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
-          <path d="M8 5.14v13.72a1 1 0 0 0 1.54.84l10.29-6.86a1 1 0 0 0 0-1.68L9.54 4.3A1 1 0 0 0 8 5.14Z" />
-        </svg>
-      </button>
+    <button class="herovideo__play" type="button" data-play-button hidden>
+      <span class="herovideo__play-label">{{ autoplay_blocked_label }}</span>
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+        <path d="M8 5.14v13.72a1 1 0 0 0 1.54.84l10.29-6.86a1 1 0 0 0 0-1.68L9.54 4.3A1 1 0 0 0 8 5.14Z" />
+      </svg>
+    </button>
+
+    {%- if slide_count > 1 -%}
+      {%- if section.settings.show_arrows -%}
+        <button class="herovideo__arrow herovideo__arrow--prev" type="button" data-prev aria-label="Previous slide">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false">
+            <path d="M15 19 8 12l7-7" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+        <button class="herovideo__arrow herovideo__arrow--next" type="button" data-next aria-label="Next slide">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false">
+            <path d="m9 5 7 7-7 7" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+      {%- endif -%}
+
+      {%- if section.settings.show_dots -%}
+        <div class="herovideo__dots" role="group" aria-label="Slides">
+          {%- for block in slides -%}
+            <button
+              class="herovideo__dot"
+              type="button"
+              data-dot
+              aria-label="Go to slide {{ forloop.index }}"
+              {% if forloop.first %}aria-current="true"{% endif %}
+            ></button>
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
     {%- endif -%}
   </div>
 </hero-video-sec>
@@ -135,17 +197,22 @@
     // A user gesture grants the document permission to play media, so a refusal can be
     // recovered from on the visitor's first interaction anywhere on the page.
     const GESTURES = ['pointerdown', 'touchstart', 'click', 'keydown', 'scroll'];
+    const SWIPE_THRESHOLD = 40;
 
     class HeroVideoSec extends HTMLElement {
       connectedCallback() {
+        this.slides = Array.from(this.querySelectorAll('[data-slide]'));
+
+        if (!this.slides.length) return;
+
         this.videos = Array.from(this.querySelectorAll('.herovideo__video'));
+        this.dots = Array.from(this.querySelectorAll('[data-dot]'));
         this.playButton = this.querySelector('[data-play-button]');
         this.mobileQuery = window.matchMedia('(max-width: 749px)');
         this.motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-        this.active = null;
-
-        this.handleBreakpoint = () => this.activate();
-        this.mobileQuery.addEventListener('change', this.handleBreakpoint);
+        this.index = 0;
+        this.visible = true;
+        this.interval = Number(this.dataset.interval) || 6000;
 
         for (const video of this.videos) {
           // Safari only counts a video as muted-by-default when the property is set rather
@@ -153,47 +220,74 @@
           video.muted = true;
           video.defaultMuted = true;
 
-          video.addEventListener('playing', () => this.sync(video, 'playing'));
-          video.addEventListener('pause', () => this.sync(video, 'paused'));
-          video.addEventListener('ended', () => this.sync(video, 'paused'));
-          video.addEventListener('error', () => this.sync(video, 'paused'));
+          video.addEventListener('playing', () => this.syncState());
+          video.addEventListener('pause', () => this.syncState());
+          video.addEventListener('error', () => this.syncState());
 
           // play() is often called before there are frames to show; these fire once there are.
-          video.addEventListener('loadeddata', () => this.play());
-          video.addEventListener('canplay', () => this.play());
+          video.addEventListener('loadeddata', () => this.playActive());
+          video.addEventListener('canplay', () => this.playActive());
+
+          // Only reachable when the loop setting is off. Letting a finished video hand over
+          // reads far better than cutting it off part way through on a fixed timer.
+          video.addEventListener('ended', () => {
+            if (this.canAdvance && video === this.activeVideo()) this.go(this.index + 1);
+          });
         }
 
+        this.handleBreakpoint = () => this.playActive();
+        this.mobileQuery.addEventListener('change', this.handleBreakpoint);
+
         if (this.playButton) {
-          this.playButton.addEventListener('click', () => this.play(true));
+          this.playButton.addEventListener('click', () => this.playActive(true));
         }
+
+        const prev = this.querySelector('[data-prev]');
+        const next = this.querySelector('[data-next]');
+
+        if (prev) prev.addEventListener('click', () => this.go(this.index - 1, true));
+        if (next) next.addEventListener('click', () => this.go(this.index + 1, true));
+
+        this.dots.forEach((dot, index) => {
+          dot.addEventListener('click', () => this.go(index, true));
+        });
+
+        this.addSwipe();
 
         // Low Power Mode, Data Saver and first-visit autoplay policies all refuse the initial
         // play(). None of them can be overridden from script, but every one of them relents
         // once the visitor interacts, so the first gesture retries.
         this.retry = () => {
           if (this.dataset.state === 'playing') return this.releaseGestures();
-          this.play(true);
+          this.playActive(true);
         };
 
         for (const type of GESTURES) {
           document.addEventListener(type, this.retry, { passive: true, capture: true });
         }
 
-        // Some browsers pause a video that was playing in a backgrounded tab.
+        // Some browsers pause a video that was playing in a backgrounded tab, and advancing
+        // slides nobody can see only wastes decoder time.
         this.handleVisibility = () => {
-          if (!document.hidden) this.play();
+          if (document.hidden) return this.stopTimer();
+          this.playActive();
+          this.startTimer();
         };
         document.addEventListener('visibilitychange', this.handleVisibility);
 
-        // Playing a hero that has scrolled away wastes battery and decoder time on phones, so the
-        // video runs only while some part of it is on screen.
+        // Running a hero that has scrolled away wastes battery on phones, so both playback and
+        // the slide timer are tied to the section being at least partly on screen.
         this.observer = new IntersectionObserver(
           (entries) => {
             for (const entry of entries) {
+              this.visible = entry.isIntersecting;
+
               if (entry.isIntersecting) {
-                this.play();
-              } else if (this.active) {
-                this.active.pause();
+                this.playActive();
+                this.startTimer();
+              } else {
+                this.pauseAll();
+                this.stopTimer();
               }
             }
           },
@@ -201,14 +295,15 @@
         );
         this.observer.observe(this);
 
-        this.activate();
+        this.go(0);
       }
 
       disconnectedCallback() {
         this.mobileQuery.removeEventListener('change', this.handleBreakpoint);
         document.removeEventListener('visibilitychange', this.handleVisibility);
         this.releaseGestures();
-        this.observer.disconnect();
+        this.stopTimer();
+        if (this.observer) this.observer.disconnect();
       }
 
       releaseGestures() {
@@ -221,26 +316,71 @@
         return !(this.dataset.respectReducedMotion === 'true' && this.motionQuery.matches);
       }
 
-      /** Picks the video that matches the current breakpoint and starts it. */
-      activate() {
+      /** Reduced motion asks for no movement at all, which covers slides as much as playback. */
+      get canAdvance() {
+        return this.slides.length > 1 && this.dataset.autoAdvance === 'true' && this.autoplayAllowed;
+      }
+
+      /** The video on the current slide that matches the current breakpoint, if it has one. */
+      activeVideo(slide) {
+        const target = slide || this.slides[this.index];
+
+        if (!target) return null;
+
         const wanted = this.mobileQuery.matches ? 'mobile' : 'desktop';
-        const next = this.videos.find((video) => video.dataset.viewport === wanted) || this.videos[0];
 
-        if (!next || next === this.active) return;
+        return (
+          target.querySelector('.herovideo__video[data-viewport="' + wanted + '"]') ||
+          target.querySelector('.herovideo__video')
+        );
+      }
 
-        if (this.active) this.active.pause();
-        this.active = next;
-        this.load(next);
+      go(next, userInitiated) {
+        const count = this.slides.length;
+        const index = ((next % count) + count) % count;
 
-        if (this.autoplayAllowed) {
-          this.play();
-        } else {
-          this.setState('paused');
+        this.index = index;
+
+        this.slides.forEach((slide, position) => {
+          slide.dataset.active = String(position === index);
+        });
+
+        this.dots.forEach((dot, position) => {
+          if (position === index) {
+            dot.setAttribute('aria-current', 'true');
+          } else {
+            dot.removeAttribute('aria-current');
+          }
+        });
+
+        this.pauseAll(this.slides[index]);
+        this.playActive(userInitiated);
+        this.startTimer();
+      }
+
+      startTimer() {
+        this.stopTimer();
+
+        if (!this.canAdvance || !this.visible || document.hidden) return;
+
+        this.timer = window.setTimeout(() => this.go(this.index + 1), this.interval);
+      }
+
+      stopTimer() {
+        if (this.timer) window.clearTimeout(this.timer);
+        this.timer = null;
+      }
+
+      pauseAll(except) {
+        for (const video of this.videos) {
+          if (except && video.closest('[data-slide]') === except) continue;
+          if (!video.paused) video.pause();
         }
       }
 
       /**
-       * Sources are held in data-src so the breakpoint that isn't showing never downloads a video.
+       * Sources are held in data-src so a slide that has never been shown never downloads a
+       * video, and the breakpoint that isn't showing never downloads one either.
        */
       load(video) {
         if (video.dataset.loaded) return;
@@ -256,21 +396,20 @@
         video.load();
       }
 
-      play(userInitiated) {
-        const video = this.active;
+      playActive(userInitiated) {
+        const video = this.activeVideo();
 
-        if (!video) return;
-        if (!userInitiated && !this.autoplayAllowed) return;
+        // An image-only slide is a perfectly valid slide; there is simply nothing to start.
+        if (!video) return this.syncState();
+        if (!userInitiated && !this.autoplayAllowed) return this.setState('paused');
         if (!video.paused && !video.ended) return;
 
-        // A retry can arrive before the breakpoint's sources have been attached.
         this.load(video);
+        this.watchForFirstFrame(video);
 
         // Safari won't autoplay anything it doesn't consider muted, and it doesn't reliably take
         // the muted attribute from markup it didn't parse itself.
         video.muted = true;
-
-        this.watchForFirstFrame(video);
 
         const played = video.play();
 
@@ -291,7 +430,7 @@
        * screen - with preload="none" there is usually nothing decoded yet. Uncovering the video at
        * that point shows the element's empty black box for a beat. So the poster is held until the
        * browser confirms a frame has actually been painted, and it is marked on the video rather
-       * than the host so switching breakpoints can't reveal a video that has yet to decode.
+       * than the host so switching slides or breakpoints can't reveal one that has yet to decode.
        */
       watchForFirstFrame(video) {
         if (video.dataset.frameWatch) return;
@@ -319,14 +458,57 @@
         video.addEventListener('timeupdate', check);
       }
 
-      sync(video, state) {
-        if (video === this.active) this.setState(state);
+      /** Swipe is the expected way to move a hero on a phone. */
+      addSwipe() {
+        if (this.slides.length < 2) return;
+
+        const frame = this.querySelector('.herovideo__frame');
+
+        if (!frame) return;
+
+        let startX = null;
+
+        frame.addEventListener(
+          'touchstart',
+          (event) => {
+            startX = event.changedTouches[0].clientX;
+          },
+          { passive: true }
+        );
+
+        frame.addEventListener(
+          'touchend',
+          (event) => {
+            if (startX === null) return;
+
+            const delta = event.changedTouches[0].clientX - startX;
+
+            startX = null;
+
+            if (Math.abs(delta) < SWIPE_THRESHOLD) return;
+
+            this.go(this.index + (delta < 0 ? 1 : -1), true);
+          },
+          { passive: true }
+        );
+      }
+
+      syncState() {
+        const video = this.activeVideo();
+
+        // An image slide is not 'playing': reporting it as such would release the gesture
+        // listeners, and a video slide reached later would lose its autoplay recovery.
+        if (!video) return this.setState('idle');
+
+        this.setState(video.paused || video.ended ? 'paused' : 'playing');
       }
 
       setState(state) {
         this.dataset.state = state;
 
-        if (this.playButton) this.playButton.hidden = state === 'playing';
+        // Only a genuine refusal earns the tap-to-play overlay. A slide with no video, or one
+        // paused because it scrolled off screen, must not put a play button over the hero.
+        if (this.playButton) this.playButton.hidden = state !== 'blocked';
         if (state === 'playing') this.releaseGestures();
       }
     }
@@ -349,6 +531,23 @@
     background-color: var(--herovideo-background, #000000);
   }
 
+  /* Slides are stacked rather than laid out in a row: a cross-fade never shows two heroes
+     mid-slide, and a video that is off screen is genuinely off screen rather than parked
+     one viewport away still decoding. */
+  .herovideo__slide {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--herovideo-fade, 600ms) ease, visibility 0s linear var(--herovideo-fade, 600ms);
+  }
+
+  .herovideo__slide[data-active='true'] {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity var(--herovideo-fade, 600ms) ease, visibility 0s;
+  }
+
   .herovideo__video,
   .herovideo__poster {
     display: block;
@@ -366,8 +565,8 @@
 
   /* The poster lifts only once its own video has painted a frame, and then stays down: a paused
      video keeps showing its last frame, so bringing the poster back would only cause a flicker
-     every time the section scrolls out of view. Each viewport is matched to its own video so a
-     breakpoint change can't uncover one that hasn't decoded yet. */
+     every time the slide changes or the section scrolls out of view. Each viewport is matched to
+     its own video so a breakpoint change can't uncover one that hasn't decoded yet. */
   .herovideo__video--all[data-has-frame='true'] ~ .herovideo__poster--all,
   .herovideo__video--desktop[data-has-frame='true'] ~ .herovideo__poster--desktop,
   .herovideo__video--mobile[data-has-frame='true'] ~ .herovideo__poster--mobile {
@@ -429,6 +628,79 @@
     white-space: nowrap;
   }
 
+  /* The tap-to-play overlay covers the whole frame, so the controls have to sit above it or a
+     blocked video would swallow every click meant for an arrow or a dot. */
+  .herovideo__arrow,
+  .herovideo__dots {
+    position: absolute;
+    z-index: 2;
+  }
+
+  .herovideo__arrow {
+    top: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 4rem;
+    height: 4rem;
+    padding: 0;
+    transform: translateY(-50%);
+    border: 0;
+    border-radius: 50%;
+    background: rgb(0 0 0 / 0.25);
+    color: #ffffff;
+    cursor: pointer;
+    appearance: none;
+    transition: background 0.2s ease;
+  }
+
+  .herovideo__arrow:hover {
+    background: rgb(0 0 0 / 0.45);
+  }
+
+  .herovideo__arrow svg {
+    width: 2.2rem;
+    height: 2.2rem;
+  }
+
+  .herovideo__arrow--prev {
+    inset-inline-start: 1.2rem;
+  }
+
+  .herovideo__arrow--next {
+    inset-inline-end: 1.2rem;
+  }
+
+  .herovideo__dots {
+    inset-inline: 0;
+    bottom: 1.6rem;
+    display: flex;
+    justify-content: center;
+    gap: 0.8rem;
+  }
+
+  .herovideo__dot {
+    width: 0.8rem;
+    height: 0.8rem;
+    padding: 0;
+    border: 1px solid #ffffff;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+    appearance: none;
+    transition: background 0.2s ease;
+  }
+
+  .herovideo__dot[aria-current='true'] {
+    background: #ffffff;
+  }
+
+  @media screen and (prefers-reduced-motion: reduce) {
+    .herovideo__slide {
+      transition-duration: 0s;
+    }
+  }
+
   @media screen and (min-width: 750px) {
     .herovideo__frame {
       aspect-ratio: var(--herovideo-ratio-desktop, 16 / 9);
@@ -454,24 +726,97 @@
 
 {% schema %}
 {
-  "name": "Hero video",
+  "name": "Hero slideshow",
   "tag": "section",
   "class": "herovideo-section",
+  "max_blocks": 8,
+  "blocks": [
+    {
+      "type": "slide",
+      "name": "Slide",
+      "settings": [
+        {
+          "type": "header",
+          "content": "Desktop"
+        },
+        {
+          "type": "video",
+          "id": "video_desktop",
+          "label": "Desktop video",
+          "info": "Leave empty for an image-only slide."
+        },
+        {
+          "type": "image_picker",
+          "id": "image_desktop",
+          "label": "Desktop image",
+          "info": "The slide itself when there is no video, and the poster shown until a video starts. Defaults to the video's own preview image."
+        },
+        {
+          "type": "header",
+          "content": "Mobile"
+        },
+        {
+          "type": "video",
+          "id": "video_mobile",
+          "label": "Mobile video",
+          "info": "Leave empty to use the desktop video on phones."
+        },
+        {
+          "type": "image_picker",
+          "id": "image_mobile",
+          "label": "Mobile image",
+          "info": "Defaults to the mobile video's preview image, then to the desktop image."
+        }
+      ]
+    }
+  ],
   "settings": [
     {
       "type": "header",
-      "content": "Desktop"
+      "content": "Slides"
     },
     {
-      "type": "video",
-      "id": "video_desktop",
-      "label": "Desktop video"
+      "type": "checkbox",
+      "id": "auto_advance",
+      "label": "Auto-advance slides",
+      "default": true
     },
     {
-      "type": "image_picker",
-      "id": "poster_desktop",
-      "label": "Desktop poster image",
-      "info": "Shown until the video starts, and again if the device refuses to autoplay it. Defaults to the video's own preview image."
+      "type": "range",
+      "id": "slide_duration",
+      "label": "Seconds per slide",
+      "info": "A video slide hands over as soon as it finishes, if looping is off.",
+      "min": 2,
+      "max": 20,
+      "step": 1,
+      "unit": "s",
+      "default": 6
+    },
+    {
+      "type": "range",
+      "id": "transition_duration",
+      "label": "Fade between slides",
+      "min": 0,
+      "max": 1500,
+      "step": 50,
+      "unit": "ms",
+      "default": 600
+    },
+    {
+      "type": "checkbox",
+      "id": "show_arrows",
+      "label": "Show arrows",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_dots",
+      "label": "Show dots",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Size"
     },
     {
       "type": "select",
@@ -485,22 +830,6 @@
         { "value": "1/1", "label": "Square (1:1)" }
       ],
       "default": "16/9"
-    },
-    {
-      "type": "header",
-      "content": "Mobile"
-    },
-    {
-      "type": "video",
-      "id": "video_mobile",
-      "label": "Mobile video",
-      "info": "Leave empty to use the desktop video on phones."
-    },
-    {
-      "type": "image_picker",
-      "id": "poster_mobile",
-      "label": "Mobile poster image",
-      "info": "Defaults to the mobile video's preview image, then to the desktop poster."
     },
     {
       "type": "select",
@@ -523,13 +852,14 @@
       "type": "checkbox",
       "id": "video_loop",
       "label": "Loop video",
+      "info": "Turn off to let each video slide advance when it ends.",
       "default": true
     },
     {
       "type": "checkbox",
       "id": "respect_reduced_motion",
       "label": "Respect reduced motion",
-      "info": "Shows the poster instead of autoplaying for visitors whose device asks for reduced motion.",
+      "info": "Shows the image instead, and stops slides advancing, for visitors whose device asks for reduced motion.",
       "default": true
     },
     {
@@ -561,7 +891,8 @@
   ],
   "presets": [
     {
-      "name": "Hero video New"
+      "name": "Hero slideshow",
+      "blocks": [{ "type": "slide" }]
     }
   ]
 }

@@ -12,9 +12,22 @@
     "hero_sec_new_HMtGEi": {
       "type": "HeroSecNew",
       "name": "Hero video New",
+      "blocks": {
+        "slide_1": {
+          "type": "slide",
+          "settings": {
+            "image_mobile": "shopify://shop_images/Project_-_Aug_30_02_34_AM_-_12.png"
+          }
+        }
+      },
+      "block_order": ["slide_1"],
       "settings": {
+        "auto_advance": true,
+        "slide_duration": 6,
+        "transition_duration": 600,
+        "show_arrows": true,
+        "show_dots": true,
         "aspect_ratio_desktop": "16/9",
-        "poster_mobile": "shopify://shop_images/Project_-_Aug_30_02_34_AM_-_12.png",
         "aspect_ratio_mobile": "9/16",
         "video_loop": true,
         "respect_reduced_motion": true,
