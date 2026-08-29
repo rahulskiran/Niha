@@ -1,0 +1,489 @@
+{%- liquid
+  assign settings = section.settings
+  assign collection = collections[settings.collection]
+  assign products = collection.products
+
+  if settings.max_products > 0
+    assign products = products | slice: 0, settings.max_products
+  endif
+
+  assign column_width = 1240 | divided_by: settings.columns
+  assign card_sizes = '(min-width: 900px) ' | append: column_width | append: 'px, 50vw'
+-%}
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400&family=Inter:wght@400;500&display=swap"
+>
+
+{%- capture grid_style -%}
+  --pgrid-bg: {{ settings.color_background }};
+  --pgrid-ink: {{ settings.color_ink }};
+  --pgrid-muted: {{ settings.color_muted }};
+  --pgrid-line: {{ settings.color_line }};
+  --pgrid-wine: {{ settings.color_wine }};
+  --pgrid-columns: {{ settings.columns }};
+  --pgrid-column-gap: {{ settings.column_gap }}px;
+  --pgrid-row-gap: {{ settings.row_gap }}px;
+  --pgrid-padding-block-start: {{ settings.padding_block_start }}px;
+  --pgrid-padding-block-end: {{ settings.padding_block_end }}px;
+{%- endcapture -%}
+
+<div class="pgrid-page" style="{{ grid_style }}" {{ section.shopify_attributes }}>
+  {%- if settings.mark != blank -%}
+    <div class="pgrid-top">
+      <div class="pgrid-mark">
+        {{- settings.mark -}}
+        {%- if settings.mark_sup != blank -%}
+          <sup>{{ settings.mark_sup }}</sup>
+        {%- endif -%}
+      </div>
+    </div>
+  {%- endif -%}
+
+  <div class="pgrid">
+    {%- for product in products -%}
+      {%- liquid
+        assign variant = product.selected_or_first_available_variant
+        assign form_id = 'ProductGrid-' | append: section.id | append: '-' | append: product.id
+        assign on_sale = false
+        if variant.compare_at_price > variant.price
+          assign on_sale = true
+          assign saved = variant.compare_at_price | minus: variant.price | times: 100.0
+          assign percent_off = saved | divided_by: variant.compare_at_price | round
+        endif
+      -%}
+
+      <div class="pgrid__item">
+        <a class="pgrid__frame" href="{{ product.url }}" aria-label="{{ product.title | escape }}">
+          {%- if on_sale and settings.show_discount_tag -%}
+            <span class="pgrid__tag">{{ percent_off }}% off</span>
+          {%- endif -%}
+
+          {%- if product.featured_media -%}
+            {{
+              product.featured_media
+              | image_url: width: 1200
+              | image_tag:
+                class: 'pgrid__image',
+                widths: '200, 300, 400, 500, 600, 800, 1000, 1200',
+                sizes: card_sizes,
+                loading: 'lazy',
+                alt: product.featured_media.alt | default: product.title
+            }}
+          {%- else -%}
+            <div class="pgrid__placeholder">{{ 'product-1' | placeholder_svg_tag }}</div>
+          {%- endif -%}
+        </a>
+
+        <a class="pgrid__name" href="{{ product.url }}">{{ product.title }}</a>
+
+        <p class="pgrid__price">
+          {%- if on_sale -%}
+            <span class="pgrid__was">
+              <span class="pgrid__cur">{{ settings.currency_prefix }}</span>
+              {{- variant.compare_at_price | money_without_currency | remove: '.00' -}}
+            </span>
+          {%- endif -%}
+          <span class="pgrid__now">
+            <span class="pgrid__cur">{{ settings.currency_prefix }}</span>
+            {{- variant.price | money_without_currency | remove: '.00' -}}
+          </span>
+        </p>
+
+        {%- if settings.show_add_to_cart -%}
+          {%- if variant.available -%}
+            <product-form-component
+              data-section-id="{{ section.id }}"
+              data-product-id="{{ product.id }}"
+              data-product-url="{{ product.url }}"
+              on:submit="/handleSubmit"
+              data-quantity-default="1"
+            >
+              <div
+                class="visually-hidden"
+                aria-live="assertive"
+                role="status"
+                aria-atomic="true"
+                ref="liveRegion"
+              ></div>
+              {%- form 'product', product, id: form_id, data-type: 'add-to-cart-form' -%}
+                <input type="hidden" name="id" ref="variantId" value="{{ variant.id }}">
+                <button class="pgrid__add" type="submit">{{ settings.add_to_cart_label }}</button>
+              {%- endform -%}
+            </product-form-component>
+          {%- else -%}
+            <button class="pgrid__add" type="button" disabled>{{ settings.sold_out_label }}</button>
+          {%- endif -%}
+        {%- endif -%}
+      </div>
+    {%- else -%}
+      {%- for i in (1..settings.columns) -%}
+        <div class="pgrid__item">
+          <div class="pgrid__frame">
+            <div class="pgrid__placeholder">{{ 'product-1' | placeholder_svg_tag }}</div>
+          </div>
+          <span class="pgrid__name">{{ 'onboarding.product_title' | t }}</span>
+          <p class="pgrid__price">
+            <span class="pgrid__now"><span class="pgrid__cur">{{ settings.currency_prefix }}</span>1,250</span>
+          </p>
+          {%- if settings.show_add_to_cart -%}
+            <button class="pgrid__add" type="button">{{ settings.add_to_cart_label }}</button>
+          {%- endif -%}
+        </div>
+      {%- endfor -%}
+    {%- endfor -%}
+  </div>
+</div>
+
+{% stylesheet %}
+  .pgrid-page {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: var(--pgrid-padding-block-start, 64px) 40px var(--pgrid-padding-block-end, 96px);
+    background: var(--pgrid-bg, #f2f0ea);
+    color: var(--pgrid-ink, #201c19);
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .pgrid-top {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding-bottom: 28px;
+    margin-bottom: 56px;
+  }
+
+  .pgrid-mark {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: 0.02em;
+  }
+
+  .pgrid-mark sup {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--pgrid-wine, #5b332f);
+    letter-spacing: 0.08em;
+    vertical-align: 4px;
+    margin-left: 2px;
+  }
+
+  .pgrid {
+    display: grid;
+    grid-template-columns: repeat(var(--pgrid-columns, 4), 1fr);
+    column-gap: var(--pgrid-column-gap, 18px);
+    row-gap: var(--pgrid-row-gap, 48px);
+  }
+
+  .pgrid__item {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .pgrid__frame {
+    position: relative;
+    display: block;
+    aspect-ratio: 3 / 4;
+    background: var(--pgrid-line, #dcd7cb);
+    overflow: hidden;
+    cursor: pointer;
+  }
+
+  .pgrid__tag {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 1;
+    padding: 3px 7px;
+    background: var(--pgrid-wine, #5b332f);
+    color: var(--pgrid-bg, #f2f0ea);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+  }
+
+  .pgrid__image,
+  .pgrid__placeholder svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.5s ease;
+  }
+
+  .pgrid__frame::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--pgrid-ink, #201c19);
+    opacity: 0;
+    transition: opacity 0.35s ease;
+  }
+
+  .pgrid__item:hover .pgrid__frame::after {
+    opacity: 0.06;
+  }
+
+  .pgrid__item:hover .pgrid__image,
+  .pgrid__item:hover .pgrid__placeholder svg {
+    transform: scale(1.035);
+  }
+
+  /* flex:1 keeps prices and buttons aligned across a row however many lines a name wraps to */
+  .pgrid__name {
+    flex: 1;
+    margin: 18px 0 4px;
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: 17px;
+    line-height: 1.3;
+    color: var(--pgrid-ink, #201c19);
+    text-decoration: none;
+  }
+
+  .pgrid__name:hover {
+    text-decoration: none;
+  }
+
+  .pgrid__price {
+    margin: 0;
+    font-size: 13px;
+    color: var(--pgrid-muted, #8b8577);
+    letter-spacing: 0.01em;
+  }
+
+  .pgrid__cur {
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    vertical-align: 1px;
+    margin-right: 2px;
+    color: var(--pgrid-muted, #8b8577);
+  }
+
+  .pgrid__was {
+    text-decoration: line-through;
+    margin-right: 6px;
+    opacity: 0.6;
+  }
+
+  .pgrid__now {
+    color: var(--pgrid-ink, #201c19);
+  }
+
+  .pgrid__add {
+    width: 100%;
+    margin-top: 12px;
+    padding: 9px 0;
+    background: none;
+    border: 1px solid var(--pgrid-ink, #201c19);
+    color: var(--pgrid-ink, #201c19);
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.25s ease, color 0.25s ease;
+  }
+
+  .pgrid__add:hover:not([disabled]) {
+    background: var(--pgrid-ink, #201c19);
+    color: var(--pgrid-bg, #f2f0ea);
+  }
+
+  .pgrid__add[disabled] {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  .pgrid__item product-form-component,
+  .pgrid__item form {
+    display: contents;
+  }
+
+  @media screen and (max-width: 900px) {
+    .pgrid-page {
+      padding: 40px 20px 64px;
+    }
+
+    .pgrid {
+      grid-template-columns: repeat(2, 1fr);
+      row-gap: 40px;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Product grid",
+  "tag": "section",
+  "class": "product-grid-section",
+  "settings": [
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection"
+    },
+    {
+      "type": "range",
+      "id": "max_products",
+      "label": "Products shown",
+      "min": 2,
+      "max": 24,
+      "step": 1,
+      "default": 8
+    },
+    {
+      "type": "header",
+      "content": "Heading"
+    },
+    {
+      "type": "text",
+      "id": "mark",
+      "label": "Brand mark",
+      "info": "Leave empty to hide the heading."
+    },
+    {
+      "type": "text",
+      "id": "mark_sup",
+      "label": "Superscript",
+      "info": "Small accent text after the mark, such as a season code."
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "range",
+      "id": "columns",
+      "label": "Columns",
+      "min": 2,
+      "max": 5,
+      "step": 1,
+      "default": 4,
+      "info": "Always 2 columns below 900px."
+    },
+    {
+      "type": "range",
+      "id": "column_gap",
+      "label": "Column gap",
+      "min": 0,
+      "max": 48,
+      "step": 2,
+      "unit": "px",
+      "default": 18
+    },
+    {
+      "type": "range",
+      "id": "row_gap",
+      "label": "Row gap",
+      "min": 16,
+      "max": 96,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "padding_block_start",
+      "label": "Top padding",
+      "min": 0,
+      "max": 128,
+      "step": 4,
+      "unit": "px",
+      "default": 64
+    },
+    {
+      "type": "range",
+      "id": "padding_block_end",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 128,
+      "step": 4,
+      "unit": "px",
+      "default": 96
+    },
+    {
+      "type": "header",
+      "content": "Product card"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_discount_tag",
+      "label": "Show discount tag",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_add_to_cart",
+      "label": "Show add to cart button",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "add_to_cart_label",
+      "label": "Add to cart label",
+      "default": "Add to cart"
+    },
+    {
+      "type": "text",
+      "id": "sold_out_label",
+      "label": "Sold out label",
+      "default": "Sold out"
+    },
+    {
+      "type": "text",
+      "id": "currency_prefix",
+      "label": "Currency prefix",
+      "default": "Rs.",
+      "info": "Shown before each price."
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "color_background",
+      "label": "Background",
+      "default": "#F2F0EA"
+    },
+    {
+      "type": "color",
+      "id": "color_ink",
+      "label": "Text and borders",
+      "default": "#201C19"
+    },
+    {
+      "type": "color",
+      "id": "color_muted",
+      "label": "Muted text",
+      "default": "#8B8577"
+    },
+    {
+      "type": "color",
+      "id": "color_line",
+      "label": "Hairline",
+      "default": "#DCD7CB"
+    },
+    {
+      "type": "color",
+      "id": "color_wine",
+      "label": "Accent",
+      "default": "#5B332F"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Product grid"
+    }
+  ]
+}
+{% endschema %}
