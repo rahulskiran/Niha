@@ -168,7 +168,7 @@
       "type": "product-grid",
       "name": "Product grid",
       "settings": {
-        "collection": "new-arrivals",
+        "collection": "luxe",
         "max_products": 8,
         "show_heading": false,
         "heading_font": "garamond_n4",
