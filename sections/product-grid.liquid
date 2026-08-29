@@ -53,6 +53,7 @@
         assign display_was_price = variant.price | times: 2
       -%}
 
+      {%- unless product.title == blank or variant == blank -%}
       <div class="pgrid__item">
         <a class="pgrid__frame" href="{{ product.url }}" aria-label="{{ product.title | escape }}">
           {%- if on_sale and settings.show_discount_tag -%}
@@ -127,6 +128,7 @@
           {%- endif -%}
         {%- endif -%}
       </div>
+      {%- endunless -%}
       {%- endfor -%}
     {%- else -%}
       {%- for i in (1..settings.columns) -%}
@@ -137,7 +139,7 @@
             {%- endif -%}
             <div class="pgrid__placeholder">{{ 'product-1' | placeholder_svg_tag }}</div>
           </div>
-          <span class="pgrid__name">{{ 'onboarding.product_title' | t }}</span>
+          <span class="pgrid__name">{{ 'placeholders.product_title' | t }}</span>
           <p class="pgrid__price">
             <span class="pgrid__was"><span class="pgrid__cur">{{ settings.currency_prefix }}</span>2,500</span>
             <span class="pgrid__now"><span class="pgrid__cur">{{ settings.currency_prefix }}</span>1,250</span>
