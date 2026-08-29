@@ -368,6 +368,7 @@
           ]
         }
       },
+      "disabled": true,
       "name": "Featured collection",
       "settings": {
         "collection": "all",
@@ -439,6 +440,8 @@
       "settings": {
         "collection": "new-arrivals",
         "max_products": 8,
+        "show_heading": false,
+        "heading_font": "heading",
         "mark": "",
         "mark_sup": "",
         "columns": 6,
@@ -447,6 +450,8 @@
         "padding_inline": 40,
         "padding_block_start": 64,
         "padding_block_end": 96,
+        "name_font": "heading",
+        "ui_font": "body",
         "show_discount_tag": true,
         "show_add_to_cart": true,
         "add_to_cart_label": "Add to cart",
