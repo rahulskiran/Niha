@@ -15,6 +15,14 @@
 
   assign column_width = 100 | divided_by: settings.columns
   assign card_sizes = '(min-width: 900px) ' | append: column_width | append: 'vw, 50vw'
+
+  # A custom heading overrides the collection's own title; leaving it blank falls back to
+  # the title of whichever collection is selected, so the heading updates on its own if the
+  # merchant later points the section at a different collection.
+  assign heading_text = settings.mark
+  if heading_text == blank
+    assign heading_text = settings.collection.title
+  endif
 -%}
 
 {%- capture grid_style -%}
@@ -32,10 +40,10 @@
 {%- endcapture -%}
 
 <div class="pgrid-page" style="{{ grid_style }}" {{ section.shopify_attributes }}>
-  {%- if settings.mark != blank -%}
+  {%- if settings.show_heading and heading_text != blank -%}
     <div class="pgrid-top">
       <div class="pgrid-mark">
-        {{- settings.mark -}}
+        {{- heading_text -}}
         {%- if settings.mark_sup != blank -%}
           <sup>{{ settings.mark_sup }}</sup>
         {%- endif -%}
@@ -392,16 +400,22 @@
       "content": "Heading"
     },
     {
+      "type": "checkbox",
+      "id": "show_heading",
+      "label": "Show heading",
+      "default": true
+    },
+    {
       "type": "text",
       "id": "mark",
-      "label": "Brand mark",
-      "info": "Leave empty to hide the heading."
+      "label": "Custom heading text",
+      "info": "Leave empty to use the selected collection's own title instead."
     },
     {
       "type": "text",
       "id": "mark_sup",
       "label": "Superscript",
-      "info": "Small accent text after the mark, such as a season code."
+      "info": "Small accent text after the heading, such as a season code."
     },
     {
       "type": "header",
