@@ -83,7 +83,7 @@
       "name": "Category grid",
       "settings": {
         "columns": 4,
-        "gap": 24,
+        "gap": 8,
         "padding_inline": 0,
         "padding_block_start": 48,
         "padding_block_end": 48,
