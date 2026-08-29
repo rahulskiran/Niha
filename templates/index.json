@@ -9,77 +9,21 @@
  */
 {
   "sections": {
-    "videosec_gFUYfW": {
-      "type": "videosec",
-      "blocks": {
-        "slide_pJjcEf": {
-          "type": "slide",
-          "settings": {
-            "video_desktop": "shopify://files/videos/IMG_7579.MP4",
-            "image_desktop": "shopify://shop_images/Screenshot_2026-02-23_121425.png",
-            "video_mobile": "shopify://files/videos/IMG_7580.MP4",
-            "image_mobile": "shopify://shop_images/Out_-_Niha_-_All_1-0.jpg",
-            "overlay_heading": "",
-            "overlay_text": "",
-            "button_text": "",
-            "button_link": ""
-          }
-        },
-        "slide_jMX4Uc": {
-          "type": "slide",
-          "disabled": true,
-          "settings": {
-            "image_desktop": "shopify://shop_images/IMG_7579-2.jpg",
-            "image_mobile": "shopify://shop_images/Out_-_Niha_-_All_1-2.jpg",
-            "overlay_heading": "",
-            "overlay_text": "",
-            "button_text": "",
-            "button_link": ""
-          }
-        },
-        "slide_gczgGc": {
-          "type": "slide",
-          "disabled": true,
-          "settings": {
-            "image_desktop": "shopify://shop_images/IMG_7579-1.jpg",
-            "image_mobile": "shopify://shop_images/Out_-_Niha_-_All_1-3.jpg",
-            "overlay_heading": "",
-            "overlay_text": "",
-            "button_text": "SHOP NOW",
-            "button_link": ""
-          }
-        }
-      },
-      "block_order": [
-        "slide_pJjcEf",
-        "slide_jMX4Uc",
-        "slide_gczgGc"
-      ],
-      "name": "Custom Video Section",
+    "hero_sec_new_HMtGEi": {
+      "type": "HeroSecNew",
+      "name": "Hero video New",
       "settings": {
-        "autoplay": true,
-        "autoplay_speed": 5,
-        "show_arrows": false,
-        "show_dots": true,
-        "desktop_aspect_ratio": "16:9",
-        "mobile_aspect_ratio": "9:16",
-        "overlay_opacity": 10,
-        "overlay_heading_font": "montserrat_n5",
-        "overlay_heading_size": 36,
-        "overlay_heading_color": "#ffffff",
-        "overlay_text_font": "sans_serif_n4",
-        "overlay_text_size": 18,
-        "overlay_text_color": "#f0f0f0",
-        "button_color": "#ffffff",
-        "button_bg_color": "#000000",
-        "button_bg_hover": "#333333",
-        "text_alignment": "center",
-        "vertical_alignment": "bottom",
+        "video_desktop": "shopify://files/videos/IMG_7579.MP4",
+        "poster_desktop": "shopify://shop_images/IMG_7579-1.jpg",
+        "aspect_ratio_desktop": "16/9",
+        "video_mobile": "shopify://files/videos/IMG_7580.MP4",
+        "poster_mobile": "shopify://shop_images/Out_-_Niha_-_All_1-2.jpg",
+        "aspect_ratio_mobile": "9/16",
+        "video_loop": true,
+        "respect_reduced_motion": true,
         "background_color": "#000000",
-        "padding_top_desktop": 0,
-        "padding_bottom_desktop": 0,
-        "padding_top_mobile": 0,
-        "padding_bottom_mobile": 0
+        "overlay_color": "#000000",
+        "overlay_opacity": 0
       }
     },
     "threesec_zkWyDr": {
@@ -182,6 +126,36 @@
         "enable_text_shadow": true
       }
     },
+    "twocat_bKTbXT": {
+      "type": "twocat",
+      "name": "Collection Grid (2 items)",
+      "settings": {
+        "collection_1": "luxe",
+        "image_1": "shopify://shop_images/3_45b87108-ee9f-40d4-9f6d-1373a1006773.jpg",
+        "title_1": "Luxe Collection",
+        "collection_2": "best-sellers",
+        "image_2": "shopify://shop_images/Tube_Flowy_Dress_White7.jpg",
+        "title_2": "Everyday Wear",
+        "corner_radius": 0,
+        "overlay_opacity": 0,
+        "grid_gap": 0,
+        "text_vertical": "flex-end",
+        "text_horizontal": "center",
+        "text_size": 28,
+        "text_weight": "400",
+        "button_text": "Shop Now",
+        "button_spacing": 0,
+        "button_font_size": 16,
+        "button_font_weight": "500",
+        "button_padding_vertical": 10,
+        "button_padding_horizontal": 20,
+        "button_border_radius": 30,
+        "button_border_width": 0,
+        "button_bg_color": "rgba(0,0,0,0)",
+        "button_text_color": "#ffffff",
+        "button_border_color": "#ffffff"
+      }
+    },
     "pagefly_section_HxY8xH": {
       "type": "pagefly-section",
       "name": "PageFly Section",
@@ -213,36 +187,6 @@
         "accent_letter_spacing_m": 0,
         "padding_top_m": 32,
         "padding_bottom_m": 32
-      }
-    },
-    "twocat_bKTbXT": {
-      "type": "twocat",
-      "name": "Collection Grid (2 items)",
-      "settings": {
-        "collection_1": "luxe",
-        "image_1": "shopify://shop_images/3_45b87108-ee9f-40d4-9f6d-1373a1006773.jpg",
-        "title_1": "Luxe Collection",
-        "collection_2": "best-sellers",
-        "image_2": "shopify://shop_images/Tube_Flowy_Dress_White7.jpg",
-        "title_2": "Everyday Wear",
-        "corner_radius": 0,
-        "overlay_opacity": 0,
-        "grid_gap": 0,
-        "text_vertical": "flex-end",
-        "text_horizontal": "center",
-        "text_size": 28,
-        "text_weight": "400",
-        "button_text": "Shop Now",
-        "button_spacing": 0,
-        "button_font_size": 16,
-        "button_font_weight": "500",
-        "button_padding_vertical": 10,
-        "button_padding_horizontal": 20,
-        "button_border_radius": 30,
-        "button_border_width": 0,
-        "button_bg_color": "rgba(0,0,0,0)",
-        "button_text_color": "#ffffff",
-        "button_border_color": "#ffffff"
       }
     },
     "product_list_fa6P9H": {
@@ -488,33 +432,15 @@
         "display_duration": 6,
         "delay_between": 60
       }
-    },
-    "hero_sec_new_HMtGEi": {
-      "type": "HeroSecNew",
-      "name": "Hero video New",
-      "settings": {
-        "video_desktop": "shopify://files/videos/IMG_7579.MP4",
-        "poster_desktop": "shopify://shop_images/IMG_7579-1.jpg",
-        "aspect_ratio_desktop": "16/9",
-        "video_mobile": "shopify://files/videos/IMG_7580.MP4",
-        "poster_mobile": "shopify://shop_images/Out_-_Niha_-_All_1-2.jpg",
-        "aspect_ratio_mobile": "9/16",
-        "video_loop": true,
-        "respect_reduced_motion": true,
-        "background_color": "#000000",
-        "overlay_color": "#000000",
-        "overlay_opacity": 0
-      }
     }
   },
   "order": [
-    "videosec_gFUYfW",
+    "hero_sec_new_HMtGEi",
     "threesec_zkWyDr",
     "twocat_bKTbXT",
     "pagefly_section_HxY8xH",
     "new1_fFtKqV",
     "product_list_fa6P9H",
-    "recentsale_EtUKx8",
-    "hero_sec_new_HMtGEi"
+    "recentsale_EtUKx8"
   ]
 }
