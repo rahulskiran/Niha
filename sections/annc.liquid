@@ -61,7 +61,9 @@
     display: inline-flex;
     align-items: center;
     white-space: nowrap;
-    padding: 0 20px; /* Space between repeated messages */
+    /* Spacing the messages with a trailing margin rather than padding on both sides keeps the
+       gap identical between two messages and across the seam where set 2 follows set 1. */
+    margin-inline-end: {{ section.settings.message_gap }}px;
   }
 
   /* Force rich text paragraphs to be inline */
@@ -98,6 +100,10 @@
   @media screen and (max-width: 749px) {
     .announcement-bar-{{ section.id }} {
       font-size: {{ section.settings.mobile_text_size }}px;
+    }
+
+    .announcement-bar__message {
+      margin-inline-end: {{ section.settings.mobile_message_gap }}px;
     }
   }
 {%- endstyle -%}
@@ -194,6 +200,26 @@
       "unit": "px",
       "label": "Mobile Text size",
       "default": 12
+    },
+    {
+      "type": "range",
+      "id": "message_gap",
+      "min": 20,
+      "max": 200,
+      "step": 5,
+      "unit": "px",
+      "label": "Space between messages",
+      "default": 80
+    },
+    {
+      "type": "range",
+      "id": "mobile_message_gap",
+      "min": 15,
+      "max": 150,
+      "step": 5,
+      "unit": "px",
+      "label": "Mobile space between messages",
+      "default": 45
     },
     {
       "type": "color",

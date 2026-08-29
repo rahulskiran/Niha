@@ -16,9 +16,11 @@
       "name": "Custom Announcement Bar",
       "settings": {
         "show_announcement": true,
-        "text": "<p>The Perfect Fit. Enjoy 20% off when you spend ₹5,000 or more. Use NIHA20</p>",
+        "text": "<p>The Perfect Fit. Enjoy 50% off on every product.</p>",
         "text_size": 14,
         "mobile_text_size": 11,
+        "message_gap": 80,
+        "mobile_message_gap": 45,
         "bg_color": "#031609",
         "text_color": "#ffffff",
         "enable_scroll": true,
