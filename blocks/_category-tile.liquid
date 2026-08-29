@@ -6,6 +6,9 @@
   if bg_brightness > 150
     assign icon_color = '#201C19'
   endif
+
+  assign tile_column_width = 100 | divided_by: section.settings.columns
+  assign tile_sizes = '(min-width: 900px) ' | append: tile_column_width | append: 'vw, 50vw'
 -%}
 
 {%- capture icon_svg -%}
@@ -31,8 +34,12 @@
     {%- if block_settings.icon_image != blank -%}
       {{
         block_settings.icon_image
-        | image_url: width: 400
-        | image_tag: class: 'cattile__icon-image', widths: '150, 200, 300, 400', sizes: '150px', alt: block_settings.label
+        | image_url: width: 1200
+        | image_tag:
+          class: 'cattile__icon-image',
+          widths: '300, 450, 600, 800, 1000, 1200',
+          sizes: tile_sizes,
+          alt: block_settings.label
       }}
     {%- elsif icon_svg != blank -%}
       <span class="cattile__icon-svg">{{ icon_svg }}</span>
@@ -81,8 +88,8 @@
     opacity: 0.06;
   }
 
-  .cattile__icon-svg,
-  .cattile__icon-image {
+  /* Built-in line-art icon: a small centered glyph on the flat swatch color */
+  .cattile__icon-svg {
     width: 46%;
     height: auto;
     display: block;
@@ -93,6 +100,17 @@
     width: 100%;
     height: auto;
     display: block;
+  }
+
+  /* Custom uploaded image: a real photo that fills the tile edge to edge */
+  .cattile__icon-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.5s ease;
   }
 
   .cattile:not(.cattile--no-link):hover .cattile__icon-svg,
