@@ -158,9 +158,40 @@
     },
     "pagefly_section_HxY8xH": {
       "type": "pagefly-section",
+      "disabled": true,
       "name": "PageFly Section",
       "settings": {
         "section_id": "pf-a0f5ab96"
+      }
+    },
+    "product_grid_ywmPG6": {
+      "type": "product-grid",
+      "name": "Product grid",
+      "settings": {
+        "collection": "new-arrivals",
+        "max_products": 8,
+        "show_heading": false,
+        "heading_font": "garamond_n4",
+        "mark": "",
+        "mark_sup": "",
+        "columns": 6,
+        "column_gap": 10,
+        "row_gap": 48,
+        "padding_inline": 40,
+        "padding_block_start": 64,
+        "padding_block_end": 96,
+        "name_font": "accent",
+        "ui_font": "body",
+        "show_discount_tag": true,
+        "show_add_to_cart": true,
+        "add_to_cart_label": "Add to cart",
+        "sold_out_label": "Sold out",
+        "currency_prefix": "Rs.",
+        "color_background": "#f2f0ea",
+        "color_ink": "#201c19",
+        "color_muted": "#8b8577",
+        "color_line": "#dcd7cb",
+        "color_wine": "#1f3d2c"
       }
     },
     "new1_fFtKqV": {
@@ -435,36 +466,6 @@
       }
     },
     "product_grid_hbwjwk": {
-      "type": "product-grid",
-      "name": "Product grid",
-      "settings": {
-        "collection": "new-arrivals",
-        "max_products": 8,
-        "show_heading": false,
-        "heading_font": "garamond_n4",
-        "mark": "",
-        "mark_sup": "",
-        "columns": 6,
-        "column_gap": 10,
-        "row_gap": 48,
-        "padding_inline": 40,
-        "padding_block_start": 64,
-        "padding_block_end": 96,
-        "name_font": "accent",
-        "ui_font": "body",
-        "show_discount_tag": true,
-        "show_add_to_cart": true,
-        "add_to_cart_label": "Add to cart",
-        "sold_out_label": "Sold out",
-        "currency_prefix": "Rs.",
-        "color_background": "#f2f0ea",
-        "color_ink": "#201c19",
-        "color_muted": "#8b8577",
-        "color_line": "#dcd7cb",
-        "color_wine": "#1f3d2c"
-      }
-    },
-    "product_grid_ywmPG6": {
       "type": "product-grid",
       "name": "Product grid",
       "settings": {
