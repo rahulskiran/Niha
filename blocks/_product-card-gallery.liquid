@@ -2,8 +2,110 @@
 
 {% assign product = closest.product %}
 
+{%- liquid
+  # Collection pages use the editorial card treatment: tag/metafield driven badges,
+  # a hover quick-add panel with sizes, and our own title/price row. Every other
+  # surface (search, featured collections, recommendations) keeps the stock card.
+  assign niha_style = false
+  if request.page_type == 'collection' and product != blank
+    assign niha_style = true
+  endif
+
+  if niha_style
+    assign niha_badge = ''
+    assign niha_label = ''
+    assign niha_note = ''
+    assign niha_ships = ''
+    assign niha_preorder = false
+
+    # Tag conventions, all optional:
+    #   badge:Limited Edition   -> white overlay label, top left
+    #   label:Core Collection   -> translucent chip, bottom left
+    #   preorder:13 Oct 2026    -> pre-order chip, ships date, reserve note in the panel
+    #   note:As worn by Aimee   -> small line under the title
+    # Bare "Limited Edition", "Core Collection" and "Pre-order" tags work too.
+    for tag in product.tags
+      assign tag_key = tag | split: ':' | first | downcase | strip
+      assign tag_value = tag | split: ':' | last | strip
+
+      case tag_key
+        when 'badge'
+          assign niha_badge = tag_value
+        when 'label'
+          assign niha_label = tag_value
+        when 'note'
+          assign niha_note = tag_value
+        when 'limited edition'
+          assign niha_badge = tag
+        when 'core collection'
+          assign niha_label = tag
+        when 'preorder' or 'pre-order'
+          assign niha_preorder = true
+          if tag contains ':'
+            assign niha_ships = tag_value
+          endif
+      endcase
+    endfor
+
+    # Metafields win over tags when they are set.
+    if product.metafields.custom.card_badge != blank
+      assign niha_badge = product.metafields.custom.card_badge.value
+    endif
+    if product.metafields.custom.card_label != blank
+      assign niha_label = product.metafields.custom.card_label.value
+    endif
+    if product.metafields.custom.card_note != blank
+      assign niha_note = product.metafields.custom.card_note.value
+    endif
+    if product.metafields.custom.preorder_ships_on != blank
+      assign niha_preorder = true
+      assign niha_ships = product.metafields.custom.preorder_ships_on.value
+    endif
+
+    # With nothing authored, fall back to the option counts, the way the reference
+    # cards read "+ 4 Colours" or "+ 8 Sizes".
+    if niha_note == blank
+      assign niha_colour_count = 0
+      assign niha_size_count = 0
+
+      for option in product.options_with_values
+        assign option_name = option.name | downcase
+        if option_name contains 'colour' or option_name contains 'color'
+          assign niha_colour_count = option.values.size
+        elsif option_name contains 'size'
+          assign niha_size_count = option.values.size
+        endif
+      endfor
+
+      if niha_colour_count > 1
+        assign niha_note = '+ ' | append: niha_colour_count | append: ' Colours'
+      elsif niha_size_count > 1
+        assign niha_note = '+ ' | append: niha_size_count | append: ' Sizes'
+      endif
+    endif
+  endif
+-%}
+
 {% capture children %}
   {% unless product == blank %}
+  {% if niha_style %}
+    {% render 'niha-card-badges',
+      product: product,
+      badge: niha_badge,
+      label: niha_label,
+      preorder: niha_preorder,
+      ships: niha_ships
+    %}
+    {% if product.available %}
+      {% render 'niha-card-quick-add',
+        product: product,
+        section_id: section.id,
+        block: block,
+        preorder: niha_preorder,
+        ships: niha_ships
+      %}
+    {% endif %}
+  {% else %}
     {%- if product.available == false or product.compare_at_price > product.price -%}
       <div
         class="product-badges product-badges--{{ settings.badge_position }}"
@@ -29,10 +131,16 @@
     {% if product.available and settings.quick_add or settings.mobile_quick_add %}
       {% render 'quick-add', product: product, section_id: section.id %}
     {% endif %}
+  {% endif %}
   {% endunless %}
 {% endcapture %}
 
 {% render 'card-gallery', children: children %}
+
+{% if niha_style %}
+  {% render 'niha-card-info', product: product, note: niha_note %}
+  {% render 'niha-collection-card-styles' %}
+{% endif %}
 
 {% # Title and price for the zoomed out grid view %}
 <div class="product-grid-view-zoom-out--details">

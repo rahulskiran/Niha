@@ -1,0 +1,174 @@
+{%- doc -%}
+  Renders the hover "quick add" panel on an editorial collection card.
+
+  Sizes come from the product option whose name contains "size" (or from the only
+  option when the product has just one). Picking a size fills the hidden variant
+  input and turns the panel button into a real add-to-cart submit, so the theme's
+  product-form-component handles the cart request and drawer as usual.
+
+  @param {object} product - The product object
+  @param {string} section_id - The section ID
+  @param {object} [block] - The block object
+  @param {boolean} [preorder] - Whether the product is sold as a pre-order
+  @param {string} [ships] - Ships-by date shown in the reserve note
+{%- enddoc -%}
+
+{%- liquid
+  assign form_id = 'NihaQuickAdd-' | append: section_id | append: '-' | append: block.id | append: '-' | append: product.id
+
+  # The card shows one variant's imagery, so sizes are resolved against that variant's
+  # other option values (colour, fabric, ...) rather than across the whole variant list.
+  assign reference_variant = product.selected_or_first_available_variant
+
+  # Powers the theme's fly-to-cart animation, same as the stock add-to-cart button.
+  assign variant_media = reference_variant.featured_media.preview_image | image_url: width: 100
+  if reference_variant.featured_media.preview_image == blank
+    assign variant_media = product.featured_media.preview_image | image_url: width: 100
+  endif
+
+  assign size_position = 0
+  for option in product.options_with_values
+    assign option_name = option.name | downcase
+    if option_name contains 'size'
+      assign size_position = forloop.index
+      break
+    endif
+  endfor
+
+  if size_position == 0 and product.options_with_values.size == 1
+    assign size_position = 1
+  endif
+
+  assign size_index = size_position | minus: 1
+
+  assign mode = 'link'
+  if product.has_only_default_variant and reference_variant.available
+    assign mode = 'single'
+  elsif size_position > 0
+    assign mode = 'sizes'
+  endif
+-%}
+
+{%- capture size_buttons -%}
+  {%- if mode == 'sizes' -%}
+    {%- for variant in product.variants -%}
+      {%- liquid
+        assign matches_card = true
+        if product.options_with_values.size > 1
+          for option in product.options_with_values
+            assign other_index = forloop.index0
+            if forloop.index != size_position
+              unless variant.options[other_index] == reference_variant.options[other_index]
+                assign matches_card = false
+                break
+              endunless
+            endif
+          endfor
+        endif
+      -%}
+      {%- if matches_card -%}
+        <button
+          type="button"
+          class="niha-qa__size"
+          data-variant-id="{{ variant.id }}"
+          aria-pressed="false"
+          {% unless variant.available %}
+            disabled
+            aria-disabled="true"
+          {% endunless %}
+        >
+          {{- variant.options[size_index] -}}
+        </button>
+      {%- endif -%}
+    {%- endfor -%}
+  {%- endif -%}
+{%- endcapture -%}
+
+{%- liquid
+  # A size option that resolved to nothing usable (every variant filtered out) falls
+  # back to sending the shopper to the product page rather than an empty panel.
+  if mode == 'sizes' and size_buttons == blank
+    assign mode = 'link'
+  endif
+-%}
+
+<niha-quick-add class="niha-qa" data-product-id="{{ product.id }}">
+  <div class="niha-qa__panel">
+    <p class="niha-qa__heading">Quick add</p>
+
+    {%- if mode == 'sizes' -%}
+      <div class="niha-qa__sizes" role="group" aria-label="Choose a size">
+        {{ size_buttons }}
+      </div>
+    {%- endif -%}
+
+    {%- if preorder -%}
+      <p class="niha-qa__note">
+        <b>Reserve yours now</b>
+        {%- if ships != blank -%}
+          &mdash; Order now, dispatch on or before {{ ships }}
+        {%- endif -%}
+      </p>
+    {%- endif -%}
+
+    {%- if mode == 'link' -%}
+      <a class="niha-qa__submit niha-qa__submit--link" href="{{ product.url }}">Choose options</a>
+    {%- else -%}
+      <product-form-component
+        data-section-id="{{ section_id }}"
+        data-product-id="{{ product.id }}"
+        data-product-url="{{ product.url }}"
+        data-quantity-default="1"
+        on:submit="/handleSubmit"
+      >
+        <div
+          class="visually-hidden"
+          aria-live="assertive"
+          role="status"
+          aria-atomic="true"
+          ref="liveRegion"
+        ></div>
+        {%- form 'product', product, id: form_id, novalidate: 'novalidate', data-type: 'add-to-cart-form' -%}
+          <input
+            type="hidden"
+            name="id"
+            ref="variantId"
+            value="{% if mode == 'single' %}{{ reference_variant.id }}{% endif %}"
+            {% if mode == 'sizes' %}
+              disabled
+            {% endif %}
+          >
+          <input type="hidden" name="quantity" value="1">
+          <add-to-cart-component
+            ref="addToCartButtonContainer"
+            data-product-variant-media="{{ variant_media }}"
+            data-add-to-cart-animation="{{ settings.add_to_cart_animation }}"
+          >
+            <button
+              type="submit"
+              name="add"
+              ref="addToCartButton"
+              on:click="/handleClick"
+              class="button add-to-cart-button niha-qa__submit"
+              {% if mode == 'sizes' %}
+                disabled
+              {% endif %}
+            >
+              <span class="add-to-cart-text niha-qa__submit-label">
+                {%- if mode == 'sizes' -%}Select size{%- else -%}Add to bag{%- endif -%}
+              </span>
+              <span class="add-to-cart__added">
+                <span class="svg-wrapper add-to-cart__added-icon">
+                  {{- 'icon-checkmark-burst.svg' | inline_asset_content -}}
+                </span>
+              </span>
+            </button>
+          </add-to-cart-component>
+        {%- endform -%}
+      </product-form-component>
+    {%- endif -%}
+  </div>
+</niha-quick-add>
+
+{% render 'add-to-cart-button-styles' %}
+{% render 'fly-to-cart-styles' %}

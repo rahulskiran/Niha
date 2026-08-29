@@ -1,0 +1,48 @@
+{%- doc -%}
+  Renders the text row beneath an editorial collection card: title, a small note
+  line ("As worn by ...", "+ 4 Colours"), the price, and the save-for-later heart.
+
+  @param {object} product - The product object
+  @param {string} [note] - Small uppercase line shown under the title
+{%- enddoc -%}
+
+{%- liquid
+  assign variant = product.selected_or_first_available_variant
+  assign price = variant.price | default: product.price_min
+  assign compare_at_price = variant.compare_at_price
+-%}
+
+<div class="niha-card-info">
+  <a
+    class="niha-card-info__title"
+    ref="productTitleLink"
+    href="{{ product.url }}"
+  >
+    {{- product.title -}}
+  </a>
+
+  <button
+    type="button"
+    class="niha-wish"
+    data-product-id="{{ product.id }}"
+    aria-pressed="false"
+    aria-label="Save {{ product.title | escape }}"
+  >
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path
+        d="M12 20.5S3.5 15.2 3.5 9.6A4.6 4.6 0 0 1 12 7a4.6 4.6 0 0 1 8.5 2.6c0 5.6-8.5 10.9-8.5 10.9Z"
+      />
+    </svg>
+  </button>
+
+  {%- if note != blank -%}
+    <p class="niha-card-info__note">{{ note }}</p>
+  {%- endif -%}
+
+  <p class="niha-card-info__price">
+    {%- if compare_at_price > price -%}
+      <s class="niha-card-info__was">{{ compare_at_price | money }}</s>
+    {%- endif -%}
+    <span>{{ price | money }}</span>
+  </p>
+</div>

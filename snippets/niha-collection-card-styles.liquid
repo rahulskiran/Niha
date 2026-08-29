@@ -1,0 +1,321 @@
+{%- doc -%}
+  Styles for the editorial collection grid: flush full-bleed columns, the badge
+  overlays, the text row beneath each card, and the hover quick-add panel.
+
+  @example
+  {% render 'niha-collection-card-styles' %}
+{%- enddoc -%}
+
+{% stylesheet %}
+  .niha-collection {
+    --niha-ink: #1c1a19;
+    --niha-muted: #8b8783;
+    --niha-line: #e4e0dc;
+    --niha-panel: #fdfcfb;
+    --niha-note: #f1ece7;
+    /* Inset for anything drawn over the image (badges, quick-add panel). */
+    --niha-pad: 14px;
+    /* The text row lines up with the image edge; the grid gap does the separating. */
+    --niha-info-pad: 0px;
+    --niha-ease: cubic-bezier(0.33, 1, 0.68, 1);
+  }
+
+  /* Flush, full-bleed columns. Specificity has to beat the per-section
+     `.product-grid--{id}:is(.product-grid--grid)` rule printed by product-grid.liquid. */
+  @media screen and (min-width: 750px) {
+    .niha-collection .product-grid.product-grid.product-grid--grid {
+      --product-grid-columns-desktop: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media screen and (min-width: 1100px) {
+    .niha-collection .product-grid.product-grid.product-grid--grid {
+      --product-grid-columns-desktop: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  @media screen and (min-width: 1400px) {
+    .niha-collection .product-grid.product-grid.product-grid--grid {
+      --product-grid-columns-desktop: repeat(5, minmax(0, 1fr));
+    }
+  }
+
+  .niha-collection .product-grid__item {
+    border: 0;
+  }
+
+  .niha-collection .product-grid__card.product-grid__card {
+    gap: 0;
+    padding: 0;
+  }
+
+  /* The card gallery clips the quick-add panel while it is parked below the image. */
+  .niha-collection .card-gallery {
+    border-radius: 0;
+  }
+
+  /* Card text row */
+  .niha-card-info {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    column-gap: 10px;
+    row-gap: 2px;
+    padding: 12px var(--niha-info-pad) 0;
+    font-family: var(--font-body--family);
+  }
+
+  .niha-card-info__title {
+    grid-column: 1;
+    font-size: 0.9375rem;
+    line-height: 1.35;
+    letter-spacing: 0.005em;
+    color: var(--niha-ink);
+    text-decoration: none;
+  }
+
+  .niha-card-info__title:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .niha-card-info__note {
+    grid-column: 1;
+    margin: 2px 0 0;
+    font-size: 0.6875rem;
+    line-height: 1.4;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--niha-muted);
+  }
+
+  .niha-card-info__price {
+    grid-column: 1;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin: 4px 0 0;
+    font-size: 0.8125rem;
+    color: var(--niha-muted);
+  }
+
+  .niha-card-info__was {
+    color: var(--niha-muted);
+    opacity: 0.7;
+  }
+
+  /* Save for later */
+  .niha-wish {
+    grid-column: 2;
+    grid-row: 1;
+    position: relative;
+    z-index: var(--layer-raised);
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--niha-ink);
+    cursor: pointer;
+  }
+
+  .niha-wish svg {
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: currentcolor;
+    stroke-width: 1.3;
+    stroke-linejoin: round;
+  }
+
+  .niha-wish[aria-pressed='true'] svg {
+    fill: currentcolor;
+  }
+
+  /* Badge overlays */
+  .niha-badges {
+    position: absolute;
+    inset-inline: 0;
+    z-index: var(--layer-raised);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 12px var(--niha-pad);
+    pointer-events: none;
+  }
+
+  .niha-badges--top {
+    top: 0;
+  }
+
+  .niha-badges--bottom {
+    bottom: 0;
+  }
+
+  .niha-badge {
+    font-size: 0.625rem;
+    line-height: 1;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .niha-badge--plain {
+    color: #fff;
+    text-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
+  }
+
+  .niha-badge--solid {
+    padding: 7px 10px;
+    background: #111;
+    color: #fff;
+  }
+
+  .niha-badge--soft {
+    padding: 7px 10px;
+    background: rgb(255 255 255 / 0.3);
+    color: #fff;
+    backdrop-filter: blur(2px);
+  }
+
+  /* Hover quick add */
+  .niha-qa {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: var(--layer-raised);
+    display: none;
+  }
+
+  .niha-qa__panel {
+    padding: 16px var(--niha-pad) var(--niha-pad);
+    background: var(--niha-panel);
+    translate: 0 101%;
+    pointer-events: none;
+  }
+
+  .niha-qa__heading {
+    margin: 0 0 12px;
+    font-size: 0.8125rem;
+    line-height: 1;
+    letter-spacing: 0.14em;
+    text-align: center;
+    text-transform: uppercase;
+    color: var(--niha-ink);
+  }
+
+  .niha-qa__sizes {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px;
+    margin-bottom: 12px;
+  }
+
+  .niha-qa__size {
+    min-width: 36px;
+    padding: 6px 8px;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-size: 0.8125rem;
+    line-height: 1;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--niha-ink);
+    cursor: pointer;
+  }
+
+  .niha-qa__size:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .niha-qa__size[aria-pressed='true'] {
+    background: var(--niha-ink);
+    color: var(--niha-panel);
+    text-decoration: none;
+  }
+
+  .niha-qa__size[disabled] {
+    color: var(--niha-muted);
+    text-decoration: line-through;
+    cursor: not-allowed;
+  }
+
+  .niha-qa__note {
+    margin: 0 0 10px;
+    padding: 10px 12px;
+    background: var(--niha-note);
+    font-size: 0.6875rem;
+    line-height: 1.5;
+    text-align: center;
+    color: var(--niha-ink);
+  }
+
+  .niha-qa__note b {
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .niha-qa__submit.niha-qa__submit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 13px 12px;
+    border: 1px solid var(--niha-ink);
+    border-radius: 0;
+    background: transparent;
+    color: var(--niha-ink);
+    font-size: 0.75rem;
+    line-height: 1;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-decoration: none;
+  }
+
+  .niha-qa__submit.niha-qa__submit:disabled {
+    opacity: 1;
+    border-color: var(--niha-line);
+    color: var(--niha-muted);
+    cursor: default;
+  }
+
+  .niha-qa__submit.niha-qa__submit:not(:disabled):hover {
+    background: var(--niha-ink);
+    color: var(--niha-panel);
+  }
+
+  @media screen and (min-width: 750px) {
+    .niha-collection .niha-qa {
+      display: block;
+    }
+
+    .niha-collection product-card:is(:hover, :focus-within) .niha-qa__panel {
+      translate: 0 0;
+      pointer-events: auto;
+    }
+  }
+
+  /* Touch devices get the product page instead of a panel they cannot hover. */
+  @media (hover: none) {
+    .niha-collection .niha-qa {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .niha-qa__panel {
+      transition: translate var(--animation-speed, 0.25s) var(--niha-ease);
+    }
+  }
+
+  /* Filter toolbar typography */
+  .niha-collection :is(.facets--filters-title, .products-count-wrapper, .facets-toggle__button) {
+    font-size: 0.6875rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+{% endstylesheet %}

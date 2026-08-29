@@ -6,6 +6,15 @@
   fetchpriority="low"
 ></script>
 
+{% comment %}
+  Size picking in the editorial card's hover panel, and the save-for-later heart.
+  Dependency free, so it loads outside the theme's module graph.
+{% endcomment %}
+<script
+  src="{{ 'niha-card-quick-add.js' | asset_url }}"
+  defer
+></script>
+
 {% javascript %}
   const url = new URL(window.location.href);
   if (url.hash) {
@@ -37,7 +46,7 @@
 {% # theme-check-disable-next-line UnknownFilter %}
 <collection-component view-event-payload="{{ collection | standard_event_data: 'view' | escape }}">
   <results-list
-    class="section product-grid-container{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}"
+    class="section product-grid-container niha-collection{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}"
     style="--padding-block-start: {{ section.settings.padding-block-start }}px; --padding-block-end: {{ section.settings.padding-block-end }}px;"
     section-id="{{ section.id }}"
     infinite-scroll="{{ section.settings.enable_infinite_scroll }}"

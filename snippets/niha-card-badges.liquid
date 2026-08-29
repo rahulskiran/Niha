@@ -1,0 +1,38 @@
+{%- doc -%}
+  Renders the overlay badges on an editorial collection card.
+
+  @param {object} product - The product object
+  @param {string} [badge] - Top-left badge text, e.g. "Limited Edition"
+  @param {string} [label] - Bottom-left soft badge text, e.g. "Core Collection"
+  @param {boolean} [preorder] - Whether the product is sold as a pre-order
+  @param {string} [ships] - Ships-by date shown beside the pre-order chip
+{%- enddoc -%}
+
+{%- liquid
+  assign show_bottom = false
+  if product.available == false or preorder or label != blank
+    assign show_bottom = true
+  endif
+-%}
+
+{%- if badge != blank -%}
+  <div class="niha-badges niha-badges--top">
+    <span class="niha-badge niha-badge--plain">{{ badge }}</span>
+  </div>
+{%- endif -%}
+
+{%- if show_bottom -%}
+  <div class="niha-badges niha-badges--bottom">
+    {%- if product.available == false -%}
+      <span class="niha-badge niha-badge--solid">{{ 'content.product_badge_sold_out' | t }}</span>
+    {%- elsif preorder -%}
+      <span class="niha-badge niha-badge--solid">Pre-order</span>
+      {%- if ships != blank -%}
+        <span class="niha-badge niha-badge--plain">Ships {{ ships }}</span>
+      {%- endif -%}
+    {%- endif -%}
+    {%- if label != blank -%}
+      <span class="niha-badge niha-badge--soft">{{ label }}</span>
+    {%- endif -%}
+  </div>
+{%- endif -%}
