@@ -82,39 +82,6 @@
         "padding_bottom_mobile": 0
       }
     },
-    "pagefly_section_HxY8xH": {
-      "type": "pagefly-section",
-      "name": "PageFly Section",
-      "settings": {
-        "section_id": "pf-a0f5ab96"
-      }
-    },
-    "new1_fFtKqV": {
-      "type": "new1",
-      "name": "Editorial Text",
-      "settings": {
-        "text": "<p>Effortless <em>luxury</em> for moments that become <em>memories</em>.</p>",
-        "bg_color": "#ffffff",
-        "text_color": "#1a1a1a",
-        "main_font": "garamond_n4",
-        "accent_font": "garamond_i4",
-        "max_width": 400,
-        "text_alignment": "center",
-        "line_height": 1.4,
-        "font_size_d": 28,
-        "letter_spacing_d": -1,
-        "accent_font_size_d": 30,
-        "accent_letter_spacing_d": 0,
-        "padding_top_d": 60,
-        "padding_bottom_d": 80,
-        "font_size_m": 24,
-        "letter_spacing_m": 0,
-        "accent_font_size_m": 24,
-        "accent_letter_spacing_m": 0,
-        "padding_top_m": 32,
-        "padding_bottom_m": 32
-      }
-    },
     "threesec_zkWyDr": {
       "type": "threesec",
       "blocks": {
@@ -213,6 +180,39 @@
         "category_title_size_desktop": 17,
         "category_title_size_mobile": 16,
         "enable_text_shadow": true
+      }
+    },
+    "pagefly_section_HxY8xH": {
+      "type": "pagefly-section",
+      "name": "PageFly Section",
+      "settings": {
+        "section_id": "pf-a0f5ab96"
+      }
+    },
+    "new1_fFtKqV": {
+      "type": "new1",
+      "name": "Editorial Text",
+      "settings": {
+        "text": "<p>Effortless <em>luxury</em> for moments that become <em>memories</em>.</p>",
+        "bg_color": "#ffffff",
+        "text_color": "#1a1a1a",
+        "main_font": "garamond_n4",
+        "accent_font": "garamond_i4",
+        "max_width": 400,
+        "text_alignment": "center",
+        "line_height": 1.4,
+        "font_size_d": 28,
+        "letter_spacing_d": -1,
+        "accent_font_size_d": 30,
+        "accent_letter_spacing_d": 0,
+        "padding_top_d": 60,
+        "padding_bottom_d": 80,
+        "font_size_m": 24,
+        "letter_spacing_m": 0,
+        "accent_font_size_m": 24,
+        "accent_letter_spacing_m": 0,
+        "padding_top_m": 32,
+        "padding_bottom_m": 32
       }
     },
     "twocat_bKTbXT": {
@@ -509,10 +509,10 @@
   },
   "order": [
     "videosec_gFUYfW",
-    "pagefly_section_HxY8xH",
-    "new1_fFtKqV",
     "threesec_zkWyDr",
     "twocat_bKTbXT",
+    "pagefly_section_HxY8xH",
+    "new1_fFtKqV",
     "product_list_fa6P9H",
     "recentsale_EtUKx8",
     "hero_sec_new_HMtGEi"
