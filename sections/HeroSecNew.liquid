@@ -66,6 +66,7 @@
           autoplay
           muted
           playsinline
+          webkit-playsinline
           preload="none"
           tabindex="-1"
           disablepictureinpicture
@@ -116,6 +117,10 @@
   (function () {
     if (customElements.get('hero-video-sec')) return;
 
+    // A user gesture grants the document permission to play media, so a refusal can be
+    // recovered from on the visitor's first interaction anywhere on the page.
+    const GESTURES = ['pointerdown', 'touchstart', 'click', 'keydown', 'scroll'];
+
     class HeroVideoSec extends HTMLElement {
       connectedCallback() {
         this.videos = Array.from(this.querySelectorAll('.herovideo__video'));
@@ -128,15 +133,42 @@
         this.mobileQuery.addEventListener('change', this.handleBreakpoint);
 
         for (const video of this.videos) {
+          // Safari only counts a video as muted-by-default when the property is set rather
+          // than the attribute alone, and it has to be set before the first play attempt.
+          video.muted = true;
+          video.defaultMuted = true;
+
           video.addEventListener('playing', () => this.sync(video, 'playing'));
           video.addEventListener('pause', () => this.sync(video, 'paused'));
           video.addEventListener('ended', () => this.sync(video, 'paused'));
           video.addEventListener('error', () => this.sync(video, 'paused'));
+
+          // play() is often called before there are frames to show; these fire once there are.
+          video.addEventListener('loadeddata', () => this.play());
+          video.addEventListener('canplay', () => this.play());
         }
 
         if (this.playButton) {
           this.playButton.addEventListener('click', () => this.play(true));
         }
+
+        // Low Power Mode, Data Saver and first-visit autoplay policies all refuse the initial
+        // play(). None of them can be overridden from script, but every one of them relents
+        // once the visitor interacts, so the first gesture retries.
+        this.retry = () => {
+          if (this.dataset.state === 'playing') return this.releaseGestures();
+          this.play(true);
+        };
+
+        for (const type of GESTURES) {
+          document.addEventListener(type, this.retry, { passive: true, capture: true });
+        }
+
+        // Some browsers pause a video that was playing in a backgrounded tab.
+        this.handleVisibility = () => {
+          if (!document.hidden) this.play();
+        };
+        document.addEventListener('visibilitychange', this.handleVisibility);
 
         // Playing a hero that has scrolled away wastes battery and decoder time on phones, so the
         // video runs only while some part of it is on screen.
@@ -144,7 +176,7 @@
           (entries) => {
             for (const entry of entries) {
               if (entry.isIntersecting) {
-                if (this.autoplayAllowed) this.play();
+                this.play();
               } else if (this.active) {
                 this.active.pause();
               }
@@ -159,7 +191,15 @@
 
       disconnectedCallback() {
         this.mobileQuery.removeEventListener('change', this.handleBreakpoint);
+        document.removeEventListener('visibilitychange', this.handleVisibility);
+        this.releaseGestures();
         this.observer.disconnect();
+      }
+
+      releaseGestures() {
+        for (const type of GESTURES) {
+          document.removeEventListener(type, this.retry, { capture: true });
+        }
       }
 
       get autoplayAllowed() {
@@ -205,6 +245,11 @@
         const video = this.active;
 
         if (!video) return;
+        if (!userInitiated && !this.autoplayAllowed) return;
+        if (!video.paused && !video.ended) return;
+
+        // A retry can arrive before the breakpoint's sources have been attached.
+        this.load(video);
 
         // Safari won't autoplay anything it doesn't consider muted, and it doesn't reliably take
         // the muted attribute from markup it didn't parse itself.
@@ -217,8 +262,8 @@
         played.then(
           () => this.setState('playing'),
           () => {
-            // Refused by the device: Low Power Mode, Data Saver, or a first-visit autoplay policy.
-            // The poster stays up and the video becomes tap-to-play.
+            // Refused by the device. The poster stays up, the video becomes tap-to-play, and
+            // the gesture listeners above will try again on the visitor's first interaction.
             this.setState(userInitiated ? 'paused' : 'blocked');
           }
         );
@@ -232,6 +277,7 @@
         this.dataset.state = state;
 
         if (this.playButton) this.playButton.hidden = state === 'playing';
+        if (state === 'playing') this.releaseGestures();
       }
     }
 
