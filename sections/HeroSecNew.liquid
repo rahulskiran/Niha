@@ -270,6 +270,8 @@
         // the muted attribute from markup it didn't parse itself.
         video.muted = true;
 
+        this.watchForFirstFrame(video);
+
         const played = video.play();
 
         if (!played) return;
@@ -282,6 +284,39 @@
             this.setState(userInitiated ? 'paused' : 'blocked');
           }
         );
+      }
+
+      /**
+       * play() resolves when playback has *begun*, which is earlier than the moment a frame is on
+       * screen - with preload="none" there is usually nothing decoded yet. Uncovering the video at
+       * that point shows the element's empty black box for a beat. So the poster is held until the
+       * browser confirms a frame has actually been painted, and it is marked on the video rather
+       * than the host so switching breakpoints can't reveal a video that has yet to decode.
+       */
+      watchForFirstFrame(video) {
+        if (video.dataset.frameWatch) return;
+
+        video.dataset.frameWatch = 'true';
+
+        const reveal = () => {
+          video.dataset.hasFrame = 'true';
+        };
+
+        if (typeof video.requestVideoFrameCallback === 'function') {
+          video.requestVideoFrameCallback(reveal);
+          return;
+        }
+
+        // Older Safari and Firefox: currentTime advancing past zero with data buffered is the
+        // closest signal available that something is being displayed.
+        const check = () => {
+          if (video.readyState < 2 || video.currentTime === 0) return;
+
+          video.removeEventListener('timeupdate', check);
+          reveal();
+        };
+
+        video.addEventListener('timeupdate', check);
       }
 
       sync(video, state) {
@@ -329,8 +364,13 @@
     transition: opacity 0.4s ease;
   }
 
-  /* The poster covers the video until playback actually starts, and comes back if it stops */
-  .herovideo[data-state='playing'] .herovideo__poster {
+  /* The poster lifts only once its own video has painted a frame, and then stays down: a paused
+     video keeps showing its last frame, so bringing the poster back would only cause a flicker
+     every time the section scrolls out of view. Each viewport is matched to its own video so a
+     breakpoint change can't uncover one that hasn't decoded yet. */
+  .herovideo__video--all[data-has-frame='true'] ~ .herovideo__poster--all,
+  .herovideo__video--desktop[data-has-frame='true'] ~ .herovideo__poster--desktop,
+  .herovideo__video--mobile[data-has-frame='true'] ~ .herovideo__poster--mobile {
     opacity: 0;
   }
 
