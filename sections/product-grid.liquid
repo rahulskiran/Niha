@@ -25,6 +25,10 @@
   endif
 -%}
 
+{% style %}
+  {{ settings.heading_font | font_face: font_display: 'swap' }}
+{% endstyle %}
+
 {%- capture grid_style -%}
   --pgrid-bg: {{ settings.color_background }};
   --pgrid-ink: {{ settings.color_ink }};
@@ -37,6 +41,9 @@
   --pgrid-padding-inline: {{ settings.padding_inline }}px;
   --pgrid-padding-block-start: {{ settings.padding_block_start }}px;
   --pgrid-padding-block-end: {{ settings.padding_block_end }}px;
+  --pgrid-heading-font-family: {{ settings.heading_font.family }}, {{ settings.heading_font.fallback_families }};
+  --pgrid-name-font-family: var(--font-{{ settings.name_font }}--family);
+  --pgrid-ui-font-family: var(--font-{{ settings.ui_font }}--family);
 {%- endcapture -%}
 
 <div class="pgrid-page" style="{{ grid_style }}" {{ section.shopify_attributes }}>
@@ -183,7 +190,7 @@
   }
 
   .pgrid-mark {
-    font-family: var(--pgrid-heading-font-family, var(--font-heading--family));
+    font-family: var(--pgrid-heading-font-family);
     font-weight: 700;
     font-size: 22px;
     letter-spacing: 0.02em;
@@ -406,16 +413,10 @@
       "default": true
     },
     {
-      "type": "select",
+      "type": "font_picker",
       "id": "heading_font",
       "label": "Heading font",
-      "options": [
-        { "value": "body", "label": "Body" },
-        { "value": "subheading", "label": "Subheading" },
-        { "value": "heading", "label": "Heading" },
-        { "value": "accent", "label": "Accent" }
-      ],
-      "default": "heading"
+      "default": "garamond_n4"
     },
     {
       "type": "text",
