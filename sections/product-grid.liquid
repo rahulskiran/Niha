@@ -13,13 +13,6 @@
   assign card_sizes = '(min-width: 900px) ' | append: column_width | append: 'vw, 50vw'
 -%}
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link
-  rel="stylesheet"
-  href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400&family=Inter:wght@400;500&display=swap"
->
-
 {%- capture grid_style -%}
   --pgrid-bg: {{ settings.color_background }};
   --pgrid-ink: {{ settings.color_ink }};
@@ -52,12 +45,12 @@
       {%- liquid
         assign variant = product.selected_or_first_available_variant
         assign form_id = 'ProductGrid-' | append: section.id | append: '-' | append: product.id
-        assign on_sale = false
-        if variant.compare_at_price > variant.price
-          assign on_sale = true
-          assign saved = variant.compare_at_price | minus: variant.price | times: 100.0
-          assign percent_off = saved | divided_by: variant.compare_at_price | round
-        endif
+
+        # Every card shows a flat 50% off against a cutoff price double the real price,
+        # regardless of the variant's own compare-at price.
+        assign on_sale = true
+        assign percent_off = 50
+        assign display_was_price = variant.price | times: 2
       -%}
 
       <div class="pgrid__item">
@@ -99,7 +92,7 @@
           {%- if on_sale -%}
             <span class="pgrid__was">
               <span class="pgrid__cur">{{ settings.currency_prefix }}</span>
-              {{- variant.compare_at_price | money_without_currency | remove: '.00' -}}
+              {{- display_was_price | money_without_currency | remove: '.00' -}}
             </span>
           {%- endif -%}
           <span class="pgrid__now">
@@ -139,10 +132,14 @@
       {%- for i in (1..settings.columns) -%}
         <div class="pgrid__item">
           <div class="pgrid__frame">
+            {%- if settings.show_discount_tag -%}
+              <span class="pgrid__tag">50% off</span>
+            {%- endif -%}
             <div class="pgrid__placeholder">{{ 'product-1' | placeholder_svg_tag }}</div>
           </div>
           <span class="pgrid__name">{{ 'onboarding.product_title' | t }}</span>
           <p class="pgrid__price">
+            <span class="pgrid__was"><span class="pgrid__cur">{{ settings.currency_prefix }}</span>2,500</span>
             <span class="pgrid__now"><span class="pgrid__cur">{{ settings.currency_prefix }}</span>1,250</span>
           </p>
           {%- if settings.show_add_to_cart -%}
@@ -159,7 +156,7 @@
     padding-block: var(--pgrid-padding-block-start, 64px) var(--pgrid-padding-block-end, 96px);
     padding-inline: var(--pgrid-padding-inline, 40px);
     color: var(--pgrid-ink, #201c19);
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-body--family);
     -webkit-font-smoothing: antialiased;
   }
 
@@ -172,14 +169,14 @@
   }
 
   .pgrid-mark {
-    font-family: 'Syne', sans-serif;
+    font-family: var(--font-heading--family);
     font-weight: 700;
     font-size: 22px;
     letter-spacing: 0.02em;
   }
 
   .pgrid-mark sup {
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-body--family);
     font-size: 11px;
     font-weight: 500;
     color: var(--pgrid-wine, #5b332f);
@@ -256,7 +253,7 @@
   .pgrid__name {
     flex: 1;
     margin: 18px 0 4px;
-    font-family: 'Fraunces', serif;
+    font-family: var(--font-heading--family);
     font-weight: 400;
     font-size: 17px;
     line-height: 1.3;
@@ -300,7 +297,7 @@
     background: none;
     border: 1px solid var(--pgrid-ink, #201c19);
     color: var(--pgrid-ink, #201c19);
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-body--family);
     font-size: 11px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
