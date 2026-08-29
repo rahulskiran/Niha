@@ -187,9 +187,42 @@
 
   .pgrid {
     display: grid;
-    grid-template-columns: repeat(var(--pgrid-columns, 4), 1fr);
+    /* Mobile-first: never more than 2 columns below 600px, then a graduated ramp up to
+       whichever column count the merchant configured, so a 6-column desktop grid doesn't
+       collapse to 2 in one jump on a tablet. */
+    grid-template-columns: repeat(min(2, var(--pgrid-columns, 4)), 1fr);
     column-gap: var(--pgrid-column-gap, 18px);
-    row-gap: var(--pgrid-row-gap, 48px);
+    row-gap: 32px;
+  }
+
+  @media screen and (min-width: 480px) {
+    .pgrid {
+      row-gap: var(--pgrid-row-gap, 48px);
+    }
+  }
+
+  @media screen and (min-width: 600px) {
+    .pgrid {
+      grid-template-columns: repeat(min(3, var(--pgrid-columns, 4)), 1fr);
+    }
+  }
+
+  @media screen and (min-width: 900px) {
+    .pgrid {
+      grid-template-columns: repeat(min(4, var(--pgrid-columns, 4)), 1fr);
+    }
+  }
+
+  @media screen and (min-width: 1200px) {
+    .pgrid {
+      grid-template-columns: repeat(min(5, var(--pgrid-columns, 4)), 1fr);
+    }
+  }
+
+  @media screen and (min-width: 1600px) {
+    .pgrid {
+      grid-template-columns: repeat(var(--pgrid-columns, 4), 1fr);
+    }
   }
 
   .pgrid__item {
@@ -320,14 +353,9 @@
     display: contents;
   }
 
-  @media screen and (max-width: 900px) {
+  @media screen and (max-width: 599px) {
     .pgrid-page {
       padding-inline: 20px;
-    }
-
-    .pgrid {
-      grid-template-columns: repeat(2, 1fr);
-      row-gap: 40px;
     }
   }
 {% endstylesheet %}
@@ -501,7 +529,7 @@
       "type": "color",
       "id": "color_wine",
       "label": "Accent",
-      "default": "#5B332F"
+      "default": "#1F3D2C"
     }
   ],
   "presets": [
