@@ -437,7 +437,7 @@
       "type": "product-grid",
       "name": "Product grid",
       "settings": {
-        "collection": "best-sellers",
+        "collection": "new-arrivals",
         "max_products": 8,
         "mark": "",
         "mark_sup": "",
