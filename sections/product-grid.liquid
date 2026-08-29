@@ -1,9 +1,11 @@
 {%- liquid
   assign settings = section.settings
-  assign collection = collections[settings.collection]
-  assign products = collection.products
 
-  if settings.max_products > 0
+  # A 'collection' setting hands back the collection itself, not a handle to look up.
+  assign products = settings.collection.products
+  assign product_count = products.size | default: 0
+
+  if product_count > settings.max_products
     assign products = products | slice: 0, settings.max_products
   endif
 
@@ -44,7 +46,8 @@
   {%- endif -%}
 
   <div class="pgrid">
-    {%- for product in products -%}
+    {%- if product_count > 0 -%}
+      {%- for product in products -%}
       {%- liquid
         assign variant = product.selected_or_first_available_variant
         assign form_id = 'ProductGrid-' | append: section.id | append: '-' | append: product.id
@@ -119,6 +122,7 @@
           {%- endif -%}
         {%- endif -%}
       </div>
+      {%- endfor -%}
     {%- else -%}
       {%- for i in (1..settings.columns) -%}
         <div class="pgrid__item">
@@ -134,7 +138,7 @@
           {%- endif -%}
         </div>
       {%- endfor -%}
-    {%- endfor -%}
+    {%- endif -%}
   </div>
 </div>
 
