@@ -9,8 +9,8 @@
     assign products = products | slice: 0, settings.max_products
   endif
 
-  assign column_width = 1240 | divided_by: settings.columns
-  assign card_sizes = '(min-width: 900px) ' | append: column_width | append: 'px, 50vw'
+  assign column_width = 100 | divided_by: settings.columns
+  assign card_sizes = '(min-width: 900px) ' | append: column_width | append: 'vw, 50vw'
 -%}
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -29,6 +29,7 @@
   --pgrid-columns: {{ settings.columns }};
   --pgrid-column-gap: {{ settings.column_gap }}px;
   --pgrid-row-gap: {{ settings.row_gap }}px;
+  --pgrid-padding-inline: {{ settings.padding_inline }}px;
   --pgrid-padding-block-start: {{ settings.padding_block_start }}px;
   --pgrid-padding-block-end: {{ settings.padding_block_end }}px;
 {%- endcapture -%}
@@ -144,10 +145,8 @@
 
 {% stylesheet %}
   .pgrid-page {
-    max-width: 1240px;
-    margin: 0 auto;
-    padding: var(--pgrid-padding-block-start, 64px) 40px var(--pgrid-padding-block-end, 96px);
-    background: var(--pgrid-bg, #f2f0ea);
+    padding-block: var(--pgrid-padding-block-start, 64px) var(--pgrid-padding-block-end, 96px);
+    padding-inline: var(--pgrid-padding-inline, 40px);
     color: var(--pgrid-ink, #201c19);
     font-family: 'Inter', sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -314,7 +313,7 @@
 
   @media screen and (max-width: 900px) {
     .pgrid-page {
-      padding: 40px 20px 64px;
+      padding-inline: 20px;
     }
 
     .pgrid {
@@ -396,6 +395,17 @@
     },
     {
       "type": "range",
+      "id": "padding_inline",
+      "label": "Side padding",
+      "min": 0,
+      "max": 80,
+      "step": 4,
+      "unit": "px",
+      "default": 40,
+      "info": "Set to 0 for edge to edge."
+    },
+    {
+      "type": "range",
       "id": "padding_block_start",
       "label": "Top padding",
       "min": 0,
@@ -456,7 +466,8 @@
     {
       "type": "color",
       "id": "color_background",
-      "label": "Background",
+      "label": "Contrast text",
+      "info": "Used for the discount tag text and the add to cart label on hover.",
       "default": "#F2F0EA"
     },
     {
