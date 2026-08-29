@@ -1,0 +1,175 @@
+{%- liquid
+  assign block_settings = block.settings
+  assign bg = block_settings.background_color
+  assign bg_brightness = bg | color_brightness
+  assign icon_color = '#F2F0EA'
+  if bg_brightness > 150
+    assign icon_color = '#201C19'
+  endif
+-%}
+
+{%- capture icon_svg -%}
+  {%- case block_settings.icon_style -%}
+    {%- when 'cross-strap' -%}
+      <svg viewBox="0 0 100 160" fill="none"><path d="M50 6 L64 16 L60 24 L60 152 L40 152 L40 26 L36 16 Z" stroke="currentColor" stroke-width="1"/></svg>
+    {%- when 'collar' -%}
+      <svg viewBox="0 0 100 160" fill="none"><path d="M38 8 C38 4 62 4 62 8 L68 20 L58 24 L58 150 L42 150 L42 24 L32 20 Z" stroke="currentColor" stroke-width="1.1"/></svg>
+    {%- when 'thin-strap' -%}
+      <svg viewBox="0 0 100 160" fill="none"><path d="M40 10 L46 20 L38 40 L44 60 L40 150 L60 150 L56 60 L62 40 L54 20 L60 10" stroke="currentColor" stroke-width="1.1"/></svg>
+    {%- when 'none' -%}
+    {%- else -%}
+      <svg viewBox="0 0 100 160" fill="none"><path d="M38 8 C38 4 62 4 62 8 L66 18 L58 22 L58 150 L42 150 L42 22 L34 18 Z" stroke="currentColor" stroke-width="1.1"/></svg>
+  {%- endcase -%}
+{%- endcapture -%}
+
+<a
+  href="{{ block_settings.link | default: '#' }}"
+  class="cattile{% if block_settings.link == blank %} cattile--no-link{% endif %}"
+  {{ block.shopify_attributes }}
+>
+  <span class="cattile__frame" style="background-color: {{ bg }}; color: {{ icon_color }};">
+    {%- if block_settings.icon_image != blank -%}
+      {{
+        block_settings.icon_image
+        | image_url: width: 400
+        | image_tag: class: 'cattile__icon-image', widths: '150, 200, 300, 400', sizes: '150px', alt: block_settings.label
+      }}
+    {%- elsif icon_svg != blank -%}
+      <span class="cattile__icon-svg">{{ icon_svg }}</span>
+    {%- endif -%}
+  </span>
+
+  {%- if block_settings.label != blank -%}
+    <span class="cattile__meta">
+      <span class="cattile__label">{{ block_settings.label }}</span>
+      <span class="cattile__arrow">{{ 'icon-arrow.svg' | inline_asset_content }}</span>
+    </span>
+  {%- endif -%}
+</a>
+
+{% stylesheet %}
+  .cattile {
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .cattile:hover {
+    text-decoration: none;
+  }
+
+  .cattile__frame {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+  }
+
+  .cattile__frame::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: #000;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+  }
+
+  .cattile:not(.cattile--no-link):hover .cattile__frame::after {
+    opacity: 0.06;
+  }
+
+  .cattile__icon-svg,
+  .cattile__icon-image {
+    width: 46%;
+    height: auto;
+    display: block;
+    transition: transform 0.5s ease;
+  }
+
+  .cattile__icon-svg svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .cattile:not(.cattile--no-link):hover .cattile__icon-svg,
+  .cattile:not(.cattile--no-link):hover .cattile__icon-image {
+    transform: scale(1.035);
+  }
+
+  .cattile__meta {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 18px;
+  }
+
+  .cattile__label {
+    font-family: var(--catgrid-label-font-family);
+    font-size: 19px;
+    color: var(--catgrid-ink, #201c19);
+  }
+
+  .cattile__arrow {
+    display: inline-flex;
+    flex-shrink: 0;
+    color: var(--catgrid-accent, #1f3d2c);
+  }
+
+  .cattile__arrow svg {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.25s ease;
+  }
+
+  .cattile:hover .cattile__arrow svg {
+    transform: translateX(4px);
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Category tile",
+  "settings": [
+    {
+      "type": "url",
+      "id": "link",
+      "label": "Link"
+    },
+    {
+      "type": "text",
+      "id": "label",
+      "label": "Label",
+      "default": "Category"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background color",
+      "default": "#3A342C"
+    },
+    {
+      "type": "select",
+      "id": "icon_style",
+      "label": "Icon",
+      "options": [
+        { "value": "none", "label": "None" },
+        { "value": "collar", "label": "Collar dress" },
+        { "value": "cross-strap", "label": "Cross-strap dress" },
+        { "value": "thin-strap", "label": "Thin-strap dress" }
+      ],
+      "default": "collar"
+    },
+    {
+      "type": "image_picker",
+      "id": "icon_image",
+      "label": "Custom icon image",
+      "info": "Overrides the built-in icon above."
+    }
+  ]
+}
+{% endschema %}

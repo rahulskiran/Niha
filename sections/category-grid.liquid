@@ -1,0 +1,189 @@
+{%- liquid
+  assign settings = section.settings
+-%}
+
+{%- capture grid_style -%}
+  --catgrid-bg: {{ settings.color_background }};
+  --catgrid-ink: {{ settings.color_ink }};
+  --catgrid-accent: {{ settings.color_accent }};
+  --catgrid-columns: {{ settings.columns }};
+  --catgrid-gap: {{ settings.gap }}px;
+  --catgrid-padding-inline: {{ settings.padding_inline }}px;
+  --catgrid-padding-block-start: {{ settings.padding_block_start }}px;
+  --catgrid-padding-block-end: {{ settings.padding_block_end }}px;
+  --catgrid-label-font-family: var(--font-{{ settings.label_font }}--family);
+{%- endcapture -%}
+
+<div class="catgrid-page" style="{{ grid_style }}" {{ section.shopify_attributes }}>
+  <div class="catgrid">
+    {% content_for 'blocks' %}
+  </div>
+</div>
+
+{% stylesheet %}
+  .catgrid-page {
+    padding-inline: var(--catgrid-padding-inline, 40px);
+    padding-block: var(--catgrid-padding-block-start, 48px) var(--catgrid-padding-block-end, 48px);
+    background: var(--catgrid-bg, #f2f0ea);
+  }
+
+  .catgrid {
+    display: grid;
+    grid-template-columns: repeat(min(2, var(--catgrid-columns, 4)), 1fr);
+    gap: var(--catgrid-gap, 24px);
+  }
+
+  @media screen and (min-width: 600px) {
+    .catgrid {
+      grid-template-columns: repeat(min(3, var(--catgrid-columns, 4)), 1fr);
+    }
+  }
+
+  @media screen and (min-width: 900px) {
+    .catgrid {
+      grid-template-columns: repeat(var(--catgrid-columns, 4), 1fr);
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Category grid",
+  "tag": "section",
+  "class": "category-grid-section",
+  "blocks": [
+    {
+      "type": "_category-tile"
+    }
+  ],
+  "settings": [
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "range",
+      "id": "columns",
+      "label": "Columns",
+      "min": 2,
+      "max": 6,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "gap",
+      "label": "Gap",
+      "min": 0,
+      "max": 48,
+      "step": 2,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "padding_inline",
+      "label": "Side padding",
+      "min": 0,
+      "max": 80,
+      "step": 4,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding_block_start",
+      "label": "Top padding",
+      "min": 0,
+      "max": 128,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "padding_block_end",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 128,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "header",
+      "content": "Style"
+    },
+    {
+      "type": "select",
+      "id": "label_font",
+      "label": "Label font",
+      "options": [
+        { "value": "body", "label": "Body" },
+        { "value": "subheading", "label": "Subheading" },
+        { "value": "heading", "label": "Heading" },
+        { "value": "accent", "label": "Accent" }
+      ],
+      "default": "heading"
+    },
+    {
+      "type": "color",
+      "id": "color_background",
+      "label": "Section background",
+      "default": "#F2F0EA"
+    },
+    {
+      "type": "color",
+      "id": "color_ink",
+      "label": "Label color",
+      "default": "#201C19"
+    },
+    {
+      "type": "color",
+      "id": "color_accent",
+      "label": "Arrow color",
+      "default": "#1F3D2C"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Category grid",
+      "blocks": {
+        "tile_1": {
+          "type": "_category-tile",
+          "settings": {
+            "label": "What's new",
+            "background_color": "#4A0E12",
+            "icon_style": "collar"
+          }
+        },
+        "tile_2": {
+          "type": "_category-tile",
+          "settings": {
+            "label": "Best sellers",
+            "background_color": "#D3CCC0",
+            "icon_style": "collar"
+          }
+        },
+        "tile_3": {
+          "type": "_category-tile",
+          "settings": {
+            "label": "Dresses",
+            "background_color": "#B15D63",
+            "icon_style": "collar"
+          }
+        },
+        "tile_4": {
+          "type": "_category-tile",
+          "settings": {
+            "label": "Luxe",
+            "background_color": "#123524",
+            "icon_style": "thin-strap"
+          }
+        }
+      },
+      "block_order": ["tile_1", "tile_2", "tile_3", "tile_4"]
+    }
+  ]
+}
+{% endschema %}
