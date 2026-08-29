@@ -40,18 +40,25 @@
 
 {% render 'collection-wrapper-styles' %}
 
-{% stylesheet %}
-  /* --padding-inline-start/end are set as inherited custom properties on the outer section
-     wrapper by Shopify's own runtime; redeclaring them on a descendant here overrides the
-     inherited value for every mobile-width consumer (collection-wrapper-styles.liquid) without
-     needing to fight specificity or duplicate its selectors. */
+{% comment %}
+  Liquid is not rendered inside {% stylesheet %} - that CSS is extracted into the theme's shared
+  bundle, so a setting has to be emitted from {% style %} instead, which stays inline.
+
+  These are deliberately their own variables rather than --padding-inline-start/end: the grid
+  itself carries those two as an inline style attribute (snippets/product-grid.liquid), which
+  beats anything inherited from an ancestor, so overriding them up here would never reach the
+  cards. product-grid.liquid reads the pair below as an optional override, falling back to the
+  shared padding whenever they are undefined - which, since they are only declared under 750px,
+  is every desktop width.
+{% endcomment %}
+{% style %}
   @media screen and (max-width: 749px) {
     .collection-wrapper {
-      --padding-inline-start: {{ section.settings.padding-inline-start-mobile }}px;
-      --padding-inline-end: {{ section.settings.padding-inline-end-mobile }}px;
+      --collection-padding-inline-start-mobile: {{ section.settings.padding-inline-start-mobile }}px;
+      --collection-padding-inline-end-mobile: {{ section.settings.padding-inline-end-mobile }}px;
     }
   }
-{% endstylesheet %}
+{% endstyle %}
 
 <div
   class="section-background{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}"
@@ -265,7 +272,7 @@
       "type": "range",
       "id": "padding-inline-start-mobile",
       "label": "Left padding (mobile)",
-      "info": "Overrides the left/right padding above, below 750px only.",
+      "info": "Overrides the left/right padding above, below 750px only. Values under 8px are ignored, as the grid keeps a minimum edge gap.",
       "min": 0,
       "max": 100,
       "step": 1,
