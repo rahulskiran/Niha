@@ -41,6 +41,7 @@
   --pgrid-padding-inline: {{ settings.padding_inline }}px;
   --pgrid-padding-block-start: {{ settings.padding_block_start }}px;
   --pgrid-padding-block-end: {{ settings.padding_block_end }}px;
+  --pgrid-heading-gap: {{ settings.heading_gap }}px;
   --pgrid-heading-font-family: {{ settings.heading_font.family }}, {{ settings.heading_font.fallback_families }};
   --pgrid-name-font-family: var(--font-{{ settings.name_font }}--family);
   --pgrid-ui-font-family: var(--font-{{ settings.ui_font }}--family);
@@ -185,8 +186,7 @@
     display: flex;
     align-items: baseline;
     gap: 12px;
-    padding-bottom: 28px;
-    margin-bottom: 56px;
+    margin-bottom: var(--pgrid-heading-gap, 56px);
   }
 
   .pgrid-mark {
@@ -429,6 +429,16 @@
       "id": "mark_sup",
       "label": "Superscript",
       "info": "Small accent text after the heading, such as a season code."
+    },
+    {
+      "type": "range",
+      "id": "heading_gap",
+      "label": "Space below heading",
+      "min": 0,
+      "max": 96,
+      "step": 4,
+      "unit": "px",
+      "default": 56
     },
     {
       "type": "header",
