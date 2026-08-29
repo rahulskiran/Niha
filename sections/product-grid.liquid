@@ -3,6 +3,10 @@
 
   # A 'collection' setting hands back the collection itself, not a handle to look up.
   assign products = settings.collection.products
+  # Drop any product Shopify can't give a real title for (draft, unpublished, incomplete) before
+  # counting, so a collection made up entirely of broken entries falls through to the onboarding
+  # placeholders instead of rendering an empty grid.
+  assign products = products | where: 'title'
   assign product_count = products.size | default: 0
 
   if product_count > settings.max_products
