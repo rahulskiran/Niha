@@ -84,11 +84,11 @@
       "settings": {
         "columns": 4,
         "gap": 24,
-        "padding_inline": 40,
+        "padding_inline": 0,
         "padding_block_start": 48,
         "padding_block_end": 48,
         "label_font": "accent",
-        "color_background": "#f2f0ea",
+        "color_background": "#ffffff",
         "color_ink": "#201c19",
         "color_accent": "#1f3d2c"
       }
