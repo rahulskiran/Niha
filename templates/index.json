@@ -14,10 +14,8 @@
       "name": "Hero video New",
       "settings": {
         "video_desktop": "shopify://files/videos/Untitled design.mp4",
-        "poster_desktop": "shopify://shop_images/IMG_7579-1.jpg",
         "aspect_ratio_desktop": "16/9",
         "video_mobile": "shopify://files/videos/mobile version.mp4",
-        "poster_mobile": "shopify://shop_images/Out_-_Niha_-_All_1-2.jpg",
         "aspect_ratio_mobile": "9/16",
         "video_loop": true,
         "respect_reduced_motion": true,
