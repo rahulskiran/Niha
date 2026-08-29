@@ -67,6 +67,14 @@
           {%- endif -%}
 
           {%- if product.featured_media -%}
+            {%- liquid
+              assign image_loading = 'lazy'
+              assign image_fetchpriority = 'auto'
+              if forloop.index0 < settings.columns
+                assign image_loading = 'eager'
+                assign image_fetchpriority = 'high'
+              endif
+            -%}
             {{
               product.featured_media
               | image_url: width: 1200
@@ -74,7 +82,10 @@
                 class: 'pgrid__image',
                 widths: '200, 300, 400, 500, 600, 800, 1000, 1200',
                 sizes: card_sizes,
-                loading: 'lazy',
+                width: product.featured_media.width,
+                height: product.featured_media.height,
+                loading: image_loading,
+                fetchpriority: image_fetchpriority,
                 alt: product.featured_media.alt | default: product.title
             }}
           {%- else -%}
@@ -218,6 +229,7 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: top;
     display: block;
     transition: transform 0.5s ease;
   }
