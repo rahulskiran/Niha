@@ -12,11 +12,11 @@
     "hero_sec_new_HMtGEi": {
       "type": "HeroSecNew",
       "blocks": {
-        "slide_kqKwYX": {
+        "slide_1": {
           "type": "slide",
           "settings": {
-            "image_desktop": "shopify://shop_images/Project_-_Aug_30_02_34_AM_-_2_1b53f4f2-fa9d-4236-bf5e-d9a1fe4519a2.png",
-            "image_mobile": "shopify://shop_images/Project_-_Aug_30_02_34_AM_-_8.png"
+            "image_desktop": "shopify://shop_images/Project_-_Aug_30_02_34_AM_-_5_502ca247-153f-46db-9b64-b8f2e85d4f21.png",
+            "image_mobile": "shopify://shop_images/Project_-_Aug_30_02_34_AM_-_12.png"
           }
         },
         "slide_fAzhg9": {
@@ -25,19 +25,11 @@
             "image_desktop": "shopify://shop_images/Project_-_Aug_30_02_34_AM_-_8_820bf101-2d61-464d-befd-c7c2d78d3f04.png",
             "image_mobile": "shopify://shop_images/Project_-_Aug_30_02_34_AM_-_6.png"
           }
-        },
-        "slide_1": {
-          "type": "slide",
-          "settings": {
-            "image_desktop": "shopify://shop_images/Project_-_Aug_30_02_34_AM_-_5_502ca247-153f-46db-9b64-b8f2e85d4f21.png",
-            "image_mobile": "shopify://shop_images/Project_-_Aug_30_02_34_AM_-_12.png"
-          }
         }
       },
       "block_order": [
-        "slide_kqKwYX",
-        "slide_fAzhg9",
-        "slide_1"
+        "slide_1",
+        "slide_fAzhg9"
       ],
       "name": "Hero video New",
       "settings": {
