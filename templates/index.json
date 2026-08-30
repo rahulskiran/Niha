@@ -24,6 +24,32 @@
         "overlay_opacity": 0
       }
     },
+    "new1_fFtKqV": {
+      "type": "new1",
+      "name": "Editorial Text",
+      "settings": {
+        "text": "<p>Effortless <em>luxury</em> for moments that become <em>memories</em>.</p>",
+        "bg_color": "#ffffff",
+        "text_color": "#1a1a1a",
+        "main_font": "syne_n4",
+        "accent_font": "garamond_i4",
+        "max_width": 400,
+        "text_alignment": "center",
+        "line_height": 1.4,
+        "font_size_d": 28,
+        "letter_spacing_d": -1,
+        "accent_font_size_d": 30,
+        "accent_letter_spacing_d": 0,
+        "padding_top_d": 60,
+        "padding_bottom_d": 80,
+        "font_size_m": 24,
+        "letter_spacing_m": 0,
+        "accent_font_size_m": 24,
+        "accent_letter_spacing_m": 0,
+        "padding_top_m": 32,
+        "padding_bottom_m": 32
+      }
+    },
     "hero_sec_new_HMtGEi": {
       "type": "HeroSecNew",
       "blocks": {
@@ -292,32 +318,6 @@
         "color_muted": "#8b8577",
         "color_line": "#dcd7cb",
         "color_wine": "#1f3d2c"
-      }
-    },
-    "new1_fFtKqV": {
-      "type": "new1",
-      "name": "Editorial Text",
-      "settings": {
-        "text": "<p>Effortless <em>luxury</em> for moments that become <em>memories</em>.</p>",
-        "bg_color": "#ffffff",
-        "text_color": "#1a1a1a",
-        "main_font": "syne_n4",
-        "accent_font": "garamond_i4",
-        "max_width": 400,
-        "text_alignment": "center",
-        "line_height": 1.4,
-        "font_size_d": 28,
-        "letter_spacing_d": -1,
-        "accent_font_size_d": 30,
-        "accent_letter_spacing_d": 0,
-        "padding_top_d": 60,
-        "padding_bottom_d": 80,
-        "font_size_m": 24,
-        "letter_spacing_m": 0,
-        "accent_font_size_m": 24,
-        "accent_letter_spacing_m": 0,
-        "padding_top_m": 32,
-        "padding_bottom_m": 32
       }
     },
     "product_list_fa6P9H": {
@@ -599,13 +599,13 @@
   },
   "order": [
     "lasthero_DQNNJW",
+    "new1_fFtKqV",
     "hero_sec_new_HMtGEi",
     "category_grid_tXeaKU",
     "threesec_zkWyDr",
     "twocat_bKTbXT",
     "pagefly_section_HxY8xH",
     "product_grid_ywmPG6",
-    "new1_fFtKqV",
     "product_list_fa6P9H",
     "recentsale_EtUKx8",
     "product_grid_hbwjwk"
