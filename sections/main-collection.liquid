@@ -57,6 +57,18 @@
       --collection-padding-inline-start-mobile: {{ section.settings.padding-inline-start-mobile }}px;
       --collection-padding-inline-end-mobile: {{ section.settings.padding-inline-end-mobile }}px;
     }
+
+    /* collection-wrapper-styles.liquid pulls product media edge to edge with a negative margin
+       on .card-gallery, and balances it with an equal positive padding on .product-grid__card.
+       Nothing in this theme carries that class - it appears only in stylesheets - so only the
+       negative half ever applied, and it is derived from the very padding being set above. Every
+       pixel added to the setting was cancelled by a matching pixel of bleed, which is why the
+       control looked dead however far it was dragged. Drop the half that has no counterpart and
+       the grid's own padding is what shows. */
+    .collection-wrapper :is(.collection-wrapper--full-width, .collection-wrapper--full-width-on-mobile) .card-gallery {
+      margin-inline-start: 0;
+      margin-inline-end: 0;
+    }
   }
 {% endstyle %}
 
@@ -272,7 +284,7 @@
       "type": "range",
       "id": "padding-inline-start-mobile",
       "label": "Left padding (mobile)",
-      "info": "Overrides the left/right padding above, below 750px only. Values under 8px are ignored, as the grid keeps a minimum edge gap.",
+      "info": "Overrides the left/right padding above, below 750px only.",
       "min": 0,
       "max": 100,
       "step": 1,
