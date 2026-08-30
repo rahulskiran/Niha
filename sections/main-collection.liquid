@@ -42,29 +42,24 @@
 
 {% comment %}
   Liquid is not rendered inside {% stylesheet %} - that CSS is extracted into the theme's shared
-  bundle, so a setting has to be emitted from {% style %} instead, which stays inline.
-
-  These are deliberately their own variables rather than --padding-inline-start/end: the grid
-  itself carries those two as an inline style attribute (snippets/product-grid.liquid), which
-  beats anything inherited from an ancestor, so overriding them up here would never reach the
-  cards. product-grid.liquid reads the pair below as an optional override, falling back to the
-  shared padding whenever they are undefined - which, since they are only declared under 750px,
-  is every desktop width.
+  bundle - so a setting has to be emitted from {% style %}, which stays inline.
 {% endcomment %}
 {% style %}
   @media screen and (max-width: 749px) {
-    .collection-wrapper {
-      --collection-padding-inline-start-mobile: {{ section.settings.padding-inline-start-mobile }}px;
-      --collection-padding-inline-end-mobile: {{ section.settings.padding-inline-end-mobile }}px;
+    /* .main-collection-grid sets `padding: var(--grid--margin--mobile)` at mobile widths, which
+       renders as `padding: 0 0` for a full-width grid. Being a shorthand it wipes out the
+       padding-inline that .spacing-style derives from the theme's padding settings, and only the
+       min-width:750px branch of that rule ever reads --padding-inline-start/end. Mobile never read
+       them at all, so no amount of feeding those variables could show up here. Restate
+       padding-inline at higher specificity; the shorthand still supplies the block padding. */
+    .collection-wrapper .main-collection-grid {
+      padding-inline: {{ section.settings.padding-inline-start-mobile }}px {{ section.settings.padding-inline-end-mobile }}px;
     }
 
-    /* collection-wrapper-styles.liquid pulls product media edge to edge with a negative margin
-       on .card-gallery, and balances it with an equal positive padding on .product-grid__card.
-       Nothing in this theme carries that class - it appears only in stylesheets - so only the
-       negative half ever applied, and it is derived from the very padding being set above. Every
-       pixel added to the setting was cancelled by a matching pixel of bleed, which is why the
-       control looked dead however far it was dragged. Drop the half that has no counterpart and
-       the grid's own padding is what shows. */
+    /* collection-wrapper-styles.liquid takes product media edge to edge with a negative margin on
+       .card-gallery, balanced by an equal positive padding on .product-grid__card - a class that
+       exists only in stylesheets here, never in rendered markup. Left alone, that orphaned half
+       pulls the media straight back out by the width of the padding just applied. */
     .collection-wrapper :is(.collection-wrapper--full-width, .collection-wrapper--full-width-on-mobile) .card-gallery {
       margin-inline-start: 0;
       margin-inline-end: 0;
