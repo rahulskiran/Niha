@@ -178,6 +178,10 @@
         {{ content_for_layout }}
       </main>
 
+      {%- if template.name == 'index' and settings.scroll_reveal_enabled -%}
+        {% render 'scroll-reveal' %}
+      {%- endif -%}
+
       <footer>
         {% sections 'footer-group' %}
       </footer>

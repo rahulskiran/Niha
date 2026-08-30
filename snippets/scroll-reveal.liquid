@@ -1,0 +1,104 @@
+{%- doc -%}
+  Fades sections up as they scroll into view on the home page.
+
+  Nothing is hidden in the markup itself. The script marks its targets at runtime, so if it never
+  runs - JS disabled, an error earlier on the page, a crawler - every section renders exactly as it
+  does today rather than staying invisible.
+
+  @example
+  {% render 'scroll-reveal' %}
+{%- enddoc -%}
+
+{%- liquid
+  assign distance = settings.scroll_reveal_distance | default: 24
+  assign duration = settings.scroll_reveal_duration | default: 700
+-%}
+
+{% style %}
+  [data-reveal] {
+    opacity: 0;
+    transform: translate3d(0, {{ distance }}px, 0);
+    transition:
+      opacity {{ duration }}ms cubic-bezier(0.16, 1, 0.3, 1),
+      transform {{ duration }}ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  [data-reveal='in'] {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* A visitor who has asked for less motion still gets the content, just without the movement. */
+  @media screen and (prefers-reduced-motion: reduce) {
+    [data-reveal],
+    [data-reveal='in'] {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+  }
+{% endstyle %}
+
+<script>
+  (function () {
+    // Bail before touching anything if the browser can't observe, so nothing is hidden that
+    // there is then no mechanism to reveal.
+    if (!('IntersectionObserver' in window)) return;
+
+    const REVEAL_DISTANCE_FROM_BOTTOM = '0px 0px -10% 0px';
+    const STAGGER = {{ settings.scroll_reveal_stagger | default: 90 }};
+    const SAFETY_TIMEOUT = 4000;
+
+    const main = document.getElementById('MainContent');
+
+    if (!main) return;
+
+    const sections = Array.from(main.children);
+
+    if (!sections.length) return;
+
+    const reveal = (element) => {
+      element.dataset.reveal = 'in';
+    };
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // Entries arrive in arbitrary order, so sort by position before staggering or a group
+        // that enters together can animate bottom-up.
+        const visible = entries.filter((entry) => entry.isIntersecting);
+
+        visible
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)
+          .forEach((entry, index) => {
+            const element = entry.target;
+
+            observer.unobserve(element);
+
+            if (index === 0) return reveal(element);
+
+            window.setTimeout(() => reveal(element), index * STAGGER);
+          });
+      },
+      { rootMargin: REVEAL_DISTANCE_FROM_BOTTOM, threshold: 0 }
+    );
+
+    for (const section of sections) {
+      // Anything already on screen at load is not something the visitor scrolled to. Fading it in
+      // would be a page-load effect rather than a scroll one, and on whichever section happens to
+      // be at the top it would delay the largest paint and read as a slow page. Keyed off the fold
+      // rather than off position, so reordering the home page can't put the hero back in scope.
+      if (section.getBoundingClientRect().top < window.innerHeight) continue;
+
+      section.dataset.reveal = '';
+      observer.observe(section);
+    }
+
+    // Last resort. If anything stops the observer firing - a layout that never settles, a browser
+    // quirk with a section that has no box - the page must not be left with invisible content.
+    window.setTimeout(() => {
+      for (const section of sections) {
+        if (section.dataset.reveal === '') reveal(section);
+      }
+    }, SAFETY_TIMEOUT);
+  })();
+</script>
