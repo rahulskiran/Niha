@@ -1,0 +1,625 @@
+{%- liquid
+  assign desktop_video = section.settings.video_desktop
+  assign mobile_video = section.settings.video_mobile
+
+  assign desktop_poster = section.settings.poster_desktop | default: desktop_video.preview_image
+  assign mobile_poster = section.settings.poster_mobile | default: mobile_video.preview_image
+
+  assign has_desktop = false
+  if desktop_video != blank or section.settings.poster_desktop != blank
+    assign has_desktop = true
+  endif
+
+  assign has_mobile = false
+  if mobile_video != blank or section.settings.poster_mobile != blank
+    assign has_mobile = true
+  endif
+
+  # A breakpoint split only pays off when both sides are actually filled in. Anything one-sided
+  # stays a single element so it still shows at every width instead of leaving a gap.
+  assign viewports = 'all'
+  if has_desktop and has_mobile
+    assign viewports = 'desktop,mobile'
+  endif
+  assign viewports = viewports | split: ','
+-%}
+
+{%- capture frame_style -%}
+  {%- if section.settings.aspect_ratio_desktop == 'full' -%}
+    --lasthero-ratio-desktop: auto; --lasthero-height-desktop: 100svh;
+  {%- else -%}
+    --lasthero-ratio-desktop: {{ section.settings.aspect_ratio_desktop }}; --lasthero-height-desktop: auto;
+  {%- endif -%}
+  {%- if section.settings.aspect_ratio_mobile == 'full' -%}
+    --lasthero-ratio-mobile: auto; --lasthero-height-mobile: 100svh;
+  {%- else -%}
+    --lasthero-ratio-mobile: {{ section.settings.aspect_ratio_mobile }}; --lasthero-height-mobile: auto;
+  {%- endif -%}
+  --lasthero-background: {{ section.settings.background_color }};
+  --lasthero-overlay-color: {{ section.settings.overlay_color }};
+  --lasthero-overlay-opacity: {{ section.settings.overlay_opacity | times: 1.0 | divided_by: 100.0 }};
+{%- endcapture -%}
+
+<last-hero
+  class="lasthero"
+  style="{{ frame_style }}"
+  data-state="paused"
+  data-respect-reduced-motion="{{ section.settings.respect_reduced_motion }}"
+  {{ section.shopify_attributes }}
+>
+  <div class="lasthero__frame">
+    {%- for viewport in viewports -%}
+      {%- liquid
+        if viewport == 'mobile'
+          assign video = mobile_video
+          assign poster = mobile_poster
+        elsif viewport == 'desktop'
+          assign video = desktop_video
+          assign poster = desktop_poster
+        else
+          assign video = desktop_video | default: mobile_video
+          assign poster = desktop_poster | default: mobile_poster
+        endif
+      -%}
+
+      {%- if video != blank -%}
+        {%- liquid
+          # A browser plays the first <source> it can decode, and Shopify returns every rendition
+          # it generated, so their natural order serves most visitors the smallest file. Listing
+          # the mp4 renditions largest first pins the hero to the resolution that was uploaded,
+          # with the smaller ones kept after it as fallbacks.
+          assign mp4_sources = video.sources | where: 'format', 'mp4' | sort: 'height' | reverse
+          assign stream_sources = video.sources | where: 'format', 'm3u8'
+
+          if mp4_sources.size > 0
+            assign video_sources = mp4_sources | concat: stream_sources
+          else
+            assign video_sources = video.sources
+          endif
+        -%}
+
+        {%- comment -%}
+          autoplay/muted/playsinline are written into the markup rather than set from script:
+          browsers grant the autoplay exemption based on the attributes present when the element
+          is parsed, and an element that only becomes muted later has already been judged.
+        {%- endcomment -%}
+        <video
+          class="lasthero__video lasthero__video--{{ viewport }}"
+          data-viewport="{{ viewport }}"
+          autoplay
+          muted
+          playsinline
+          webkit-playsinline
+          preload="none"
+          tabindex="-1"
+          disablepictureinpicture
+          disableremoteplayback
+          {% if section.settings.video_loop %}
+            loop
+          {% endif %}
+        >
+          {%- for source in video_sources -%}
+            <source data-src="{{ source.url }}" type="{{ source.mime_type }}">
+          {%- endfor -%}
+        </video>
+      {%- endif -%}
+
+      {%- assign poster_class = 'lasthero__poster lasthero__poster--' | append: viewport -%}
+
+      {%- if poster != blank -%}
+        {{
+          poster
+          | image_url: width: 3840
+          | image_tag:
+            class: poster_class,
+            widths: '750, 990, 1200, 1600, 2000, 2400, 3000, 3840',
+            sizes: '100vw',
+            loading: 'eager',
+            fetchpriority: 'high',
+            alt: ''
+        }}
+      {%- elsif video == blank -%}
+        <div class="lasthero__poster lasthero__poster--{{ viewport }} lasthero__placeholder">
+          {{ 'lifestyle-1' | placeholder_svg_tag }}
+        </div>
+      {%- endif -%}
+    {%- endfor -%}
+
+    <div class="lasthero__overlay"></div>
+
+    {%- if desktop_video != blank or mobile_video != blank -%}
+      <button class="lasthero__play" type="button" data-play-button hidden>
+        <span class="lasthero__play-label">{{ 'Play video' }}</span>
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+          <path d="M8 5.14v13.72a1 1 0 0 0 1.54.84l10.29-6.86a1 1 0 0 0 0-1.68L9.54 4.3A1 1 0 0 0 8 5.14Z" />
+        </svg>
+      </button>
+    {%- endif -%}
+  </div>
+</last-hero>
+
+<script>
+  (function () {
+    if (customElements.get('last-hero')) return;
+
+    // Every one of these grants the document permission to play media, so a refusal can be
+    // recovered from on the visitor's first interaction anywhere on the page - which is the only
+    // thing that actually lifts a Low Power Mode or Data Saver block.
+    const GESTURES = [
+      'pointerdown',
+      'pointerup',
+      'touchstart',
+      'touchend',
+      'click',
+      'keydown',
+      'wheel',
+      'scroll',
+      'focus',
+    ];
+
+    // A refusal is often transient - a decoder still warming up, a tab that was backgrounded
+    // during load - so the first few seconds are worth retrying blind before giving up and
+    // waiting for the visitor.
+    const RETRY_INTERVAL = 400;
+    const RETRY_WINDOW = 12000;
+
+    class LastHero extends HTMLElement {
+      connectedCallback() {
+        this.videos = Array.from(this.querySelectorAll('.lasthero__video'));
+        this.playButton = this.querySelector('[data-play-button]');
+        this.mobileQuery = window.matchMedia('(max-width: 749px)');
+        this.motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+        this.active = null;
+        this.deadline = Date.now() + RETRY_WINDOW;
+
+        this.handleBreakpoint = () => this.activate();
+        this.mobileQuery.addEventListener('change', this.handleBreakpoint);
+
+        for (const video of this.videos) {
+          // Safari only counts a video as muted-by-default when the property is set rather than
+          // the attribute alone, and it has to be set before the first play attempt.
+          video.muted = true;
+          video.defaultMuted = true;
+          video.volume = 0;
+
+          video.addEventListener('playing', () => this.sync(video, 'playing'));
+          video.addEventListener('pause', () => this.sync(video, 'paused'));
+          video.addEventListener('ended', () => this.sync(video, 'paused'));
+          video.addEventListener('error', () => this.sync(video, 'paused'));
+
+          // play() is routinely called before there is anything to show; each of these fires at a
+          // point where another attempt has a better chance than the last.
+          for (const event of ['loadedmetadata', 'loadeddata', 'canplay', 'canplaythrough']) {
+            video.addEventListener(event, () => this.play());
+          }
+
+          // Some browsers stall a video that was buffering while backgrounded.
+          video.addEventListener('stalled', () => this.play());
+          video.addEventListener('suspend', () => this.play());
+        }
+
+        if (this.playButton) {
+          this.playButton.addEventListener('click', () => this.play(true));
+        }
+
+        // Low Power Mode, Data Saver and first-visit autoplay policies all refuse the initial
+        // play(). None of them can be overridden from script, but every one of them relents once
+        // the visitor interacts, so the first gesture anywhere on the page retries.
+        this.retry = () => {
+          if (this.dataset.state === 'playing') return this.releaseGestures();
+          this.play(true);
+        };
+
+        for (const type of GESTURES) {
+          document.addEventListener(type, this.retry, { passive: true, capture: true });
+        }
+
+        this.handleVisibility = () => {
+          if (!document.hidden) this.play();
+        };
+        document.addEventListener('visibilitychange', this.handleVisibility);
+        window.addEventListener('pageshow', this.handleVisibility);
+
+        // Playing a hero that has scrolled away wastes battery and decoder time, so playback is
+        // tied to the section being at least partly on screen.
+        this.observer = new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries) {
+              if (entry.isIntersecting) {
+                this.play();
+              } else if (this.active) {
+                this.active.pause();
+              }
+            }
+          },
+          { threshold: 0 }
+        );
+        this.observer.observe(this);
+
+        this.activate();
+        this.startRetries();
+      }
+
+      disconnectedCallback() {
+        this.mobileQuery.removeEventListener('change', this.handleBreakpoint);
+        document.removeEventListener('visibilitychange', this.handleVisibility);
+        window.removeEventListener('pageshow', this.handleVisibility);
+        this.releaseGestures();
+        this.stopRetries();
+        if (this.observer) this.observer.disconnect();
+      }
+
+      releaseGestures() {
+        for (const type of GESTURES) {
+          document.removeEventListener(type, this.retry, { capture: true });
+        }
+      }
+
+      startRetries() {
+        this.stopRetries();
+
+        this.ticker = window.setInterval(() => {
+          if (this.dataset.state === 'playing' || Date.now() > this.deadline) {
+            return this.stopRetries();
+          }
+
+          this.play();
+        }, RETRY_INTERVAL);
+      }
+
+      stopRetries() {
+        if (this.ticker) window.clearInterval(this.ticker);
+        this.ticker = null;
+      }
+
+      get autoplayAllowed() {
+        return !(this.dataset.respectReducedMotion === 'true' && this.motionQuery.matches);
+      }
+
+      /** Picks the video matching the current breakpoint and starts it. */
+      activate() {
+        const wanted = this.mobileQuery.matches ? 'mobile' : 'desktop';
+        const next = this.videos.find((video) => video.dataset.viewport === wanted) || this.videos[0];
+
+        if (!next || next === this.active) return;
+
+        if (this.active) this.active.pause();
+
+        this.active = next;
+        this.load(next);
+
+        if (this.autoplayAllowed) {
+          this.play();
+        } else {
+          this.setState('paused');
+        }
+      }
+
+      /** Sources sit in data-src so the breakpoint that isn't showing never downloads a video. */
+      load(video) {
+        if (video.dataset.loaded) return;
+
+        const sources = video.querySelectorAll('source[data-src]');
+
+        if (!sources.length) return;
+
+        for (const source of sources) source.setAttribute('src', source.dataset.src);
+
+        video.dataset.loaded = 'true';
+        video.preload = 'auto';
+        video.load();
+      }
+
+      play(userInitiated) {
+        const video = this.active;
+
+        if (!video) return;
+        if (!userInitiated && !this.autoplayAllowed) return;
+        if (!video.paused && !video.ended) return;
+
+        // A retry can arrive before this breakpoint's sources have been attached.
+        this.load(video);
+        this.watchForFirstFrame(video);
+
+        // Safari won't autoplay anything it doesn't consider muted, and it doesn't reliably take
+        // the muted attribute from markup it didn't parse itself.
+        video.muted = true;
+
+        const played = video.play();
+
+        if (!played) return;
+
+        played.then(
+          () => this.setState('playing'),
+          () => {
+            // Refused by the device. The poster stays up, the video becomes tap-to-play, and the
+            // gesture listeners above try again on the visitor's first interaction.
+            this.setState(userInitiated ? 'paused' : 'blocked');
+          }
+        );
+      }
+
+      /**
+       * play() resolves when playback has *begun*, which is earlier than the moment a frame is on
+       * screen. Uncovering the video then shows its empty black box for a beat, so the poster is
+       * held until the browser confirms a frame has actually been painted.
+       */
+      watchForFirstFrame(video) {
+        if (video.dataset.frameWatch) return;
+
+        video.dataset.frameWatch = 'true';
+
+        const reveal = () => {
+          video.dataset.hasFrame = 'true';
+        };
+
+        if (typeof video.requestVideoFrameCallback === 'function') {
+          video.requestVideoFrameCallback(reveal);
+          return;
+        }
+
+        // Older Safari and Firefox: currentTime advancing past zero with data buffered is the
+        // closest signal available that something is being displayed.
+        const check = () => {
+          if (video.readyState < 2 || video.currentTime === 0) return;
+
+          video.removeEventListener('timeupdate', check);
+          reveal();
+        };
+
+        video.addEventListener('timeupdate', check);
+      }
+
+      sync(video, state) {
+        if (video === this.active) this.setState(state);
+      }
+
+      setState(state) {
+        this.dataset.state = state;
+
+        // Only a genuine refusal earns the tap-to-play overlay; a video paused because it
+        // scrolled off screen must not put a button over the hero.
+        if (this.playButton) this.playButton.hidden = state !== 'blocked';
+
+        if (state === 'playing') {
+          this.releaseGestures();
+          this.stopRetries();
+        }
+      }
+    }
+
+    customElements.define('last-hero', LastHero);
+  })();
+</script>
+
+{% stylesheet %}
+  .lasthero {
+    display: block;
+    position: relative;
+  }
+
+  .lasthero__frame {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: var(--lasthero-ratio-mobile, 9 / 16);
+    height: var(--lasthero-height-mobile, auto);
+    background-color: var(--lasthero-background, #000000);
+  }
+
+  .lasthero__video,
+  .lasthero__poster {
+    display: block;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .lasthero__poster {
+    opacity: 1;
+    transition: opacity 0.4s ease;
+  }
+
+  /* The poster lifts only once its own video has painted a frame, and then stays down: a paused
+     video keeps showing its last frame, so bringing the poster back would only flicker every time
+     the section scrolls out of view. Each viewport is matched to its own video so a breakpoint
+     change can't uncover one that hasn't decoded yet. */
+  .lasthero__video--all[data-has-frame='true'] ~ .lasthero__poster--all,
+  .lasthero__video--desktop[data-has-frame='true'] ~ .lasthero__poster--desktop,
+  .lasthero__video--mobile[data-has-frame='true'] ~ .lasthero__poster--mobile {
+    opacity: 0;
+  }
+
+  .lasthero__placeholder svg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .lasthero__video--desktop,
+  .lasthero__poster--desktop {
+    display: none;
+  }
+
+  .lasthero__overlay {
+    position: absolute;
+    inset: 0;
+    background-color: var(--lasthero-overlay-color, #000000);
+    opacity: var(--lasthero-overlay-opacity, 0);
+    pointer-events: none;
+  }
+
+  .lasthero__play {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #ffffff;
+    cursor: pointer;
+    appearance: none;
+  }
+
+  .lasthero__play[hidden] {
+    display: none;
+  }
+
+  .lasthero__play svg {
+    width: 4.4rem;
+    height: 4.4rem;
+    filter: drop-shadow(0 2px 8px rgb(0 0 0 / 0.45));
+  }
+
+  .lasthero__play-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  @media screen and (min-width: 750px) {
+    .lasthero__frame {
+      aspect-ratio: var(--lasthero-ratio-desktop, 16 / 9);
+      height: var(--lasthero-height-desktop, auto);
+    }
+
+    .lasthero__video--desktop,
+    .lasthero__poster--desktop {
+      display: block;
+    }
+
+    .lasthero__video--mobile,
+    .lasthero__poster--mobile {
+      display: none;
+    }
+
+    .lasthero__play svg {
+      width: 6rem;
+      height: 6rem;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Last hero",
+  "tag": "section",
+  "class": "lasthero-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Desktop"
+    },
+    {
+      "type": "video",
+      "id": "video_desktop",
+      "label": "Desktop video"
+    },
+    {
+      "type": "image_picker",
+      "id": "poster_desktop",
+      "label": "Desktop poster image",
+      "info": "Shown until the video paints its first frame, and left up if the device refuses to autoplay. Defaults to the video's own preview image."
+    },
+    {
+      "type": "select",
+      "id": "aspect_ratio_desktop",
+      "label": "Desktop height",
+      "options": [
+        { "value": "full", "label": "Full screen" },
+        { "value": "21/9", "label": "Cinematic (21:9)" },
+        { "value": "16/9", "label": "Landscape (16:9)" },
+        { "value": "4/3", "label": "Classic (4:3)" },
+        { "value": "1/1", "label": "Square (1:1)" }
+      ],
+      "default": "16/9"
+    },
+    {
+      "type": "header",
+      "content": "Mobile"
+    },
+    {
+      "type": "video",
+      "id": "video_mobile",
+      "label": "Mobile video",
+      "info": "Leave empty to use the desktop video on phones."
+    },
+    {
+      "type": "image_picker",
+      "id": "poster_mobile",
+      "label": "Mobile poster image",
+      "info": "Defaults to the mobile video's preview image."
+    },
+    {
+      "type": "select",
+      "id": "aspect_ratio_mobile",
+      "label": "Mobile height",
+      "options": [
+        { "value": "full", "label": "Full screen" },
+        { "value": "9/16", "label": "Portrait (9:16)" },
+        { "value": "4/5", "label": "Tall (4:5)" },
+        { "value": "1/1", "label": "Square (1:1)" },
+        { "value": "16/9", "label": "Landscape (16:9)" }
+      ],
+      "default": "9/16"
+    },
+    {
+      "type": "header",
+      "content": "Playback"
+    },
+    {
+      "type": "checkbox",
+      "id": "video_loop",
+      "label": "Loop video",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "respect_reduced_motion",
+      "label": "Respect reduced motion",
+      "info": "Off by default here, so the hero autoplays for everyone. Turn on to show the poster instead for visitors whose device asks for reduced motion.",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Appearance"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "overlay_color",
+      "label": "Overlay color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "Overlay opacity",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "Last hero"
+    }
+  ]
+}
+{% endschema %}
