@@ -62,7 +62,7 @@
         # forloop is rebound by the inner viewport loop below, so the slide's own position has to
         # be captured here. Only the first slide is on screen at load; the rest can wait.
         assign slide_loading = 'lazy'
-        assign slide_priority = 'auto'
+        assign slide_priority = 'low'
         if forloop.first
           assign slide_loading = 'eager'
           assign slide_priority = 'high'
@@ -79,14 +79,11 @@
           {%- liquid
             if viewport == 'mobile'
               assign video = mobile_video
-              assign poster = mobile_poster
             elsif viewport == 'desktop'
               assign video = desktop_video
-              assign poster = desktop_poster
             else
               # Whichever side the merchant actually filled in, shown at every width.
               assign video = desktop_video | default: mobile_video
-              assign poster = desktop_poster | default: mobile_poster
             endif
           -%}
 
@@ -109,9 +106,6 @@
             <video
               class="herovideo__video herovideo__video--{{ viewport }}"
               data-viewport="{{ viewport }}"
-              {% if poster != blank %}
-                poster="{{ poster | image_url: width: 1600 }}"
-              {% endif %}
               muted
               playsinline
               webkit-playsinline
@@ -128,25 +122,47 @@
             </video>
           {%- endif -%}
 
-          {%- assign poster_class = 'herovideo__poster herovideo__poster--' | append: viewport -%}
+        {%- endfor -%}
 
-          {%- if poster != blank -%}
+        {%- liquid
+          # One <picture> for the slide rather than an <img> per breakpoint. Two images with the
+          # off-breakpoint one hidden in CSS still cost two downloads - display:none does not stop
+          # a fetch - so every visitor was paying for a desktop image on a phone and vice versa.
+          # A media source downloads exactly one.
+          assign picture_desktop = desktop_poster | default: mobile_poster
+          assign picture_mobile = mobile_poster | default: desktop_poster
+
+          assign split_poster = false
+          if has_desktop and has_mobile and desktop_poster != blank and mobile_poster != blank
+            assign split_poster = true
+          endif
+        -%}
+
+        {%- if picture_desktop != blank -%}
+          <picture class="herovideo__poster">
+            {%- if split_poster -%}
+              <source
+                media="(max-width: 749px)"
+                srcset="{{ picture_mobile | image_url: width: 1200 }} 1200w, {{ picture_mobile | image_url: width: 1600 }} 1600w, {{ picture_mobile | image_url: width: 2000 }} 2000w"
+                sizes="100vw"
+              >
+            {%- endif -%}
             {{
-              poster
-              | image_url: width: 3000
+              picture_desktop
+              | image_url: width: 3840
               | image_tag:
-                class: poster_class,
-                widths: '480, 720, 990, 1200, 1600, 2000, 2400, 3000',
+                widths: '750, 990, 1200, 1600, 2000, 2400, 3000, 3840',
                 sizes: '100vw',
                 loading: slide_loading,
-                fetchpriority: slide_priority
+                fetchpriority: slide_priority,
+                alt: ''
             }}
-          {%- elsif video == blank -%}
-            <div class="herovideo__poster herovideo__poster--{{ viewport }} herovideo__placeholder">
-              {{ 'lifestyle-1' | placeholder_svg_tag }}
-            </div>
-          {%- endif -%}
-        {%- endfor -%}
+          </picture>
+        {%- elsif has_desktop == false and has_mobile == false -%}
+          <div class="herovideo__poster herovideo__placeholder">
+            {{ 'lifestyle-1' | placeholder_svg_tag }}
+          </div>
+        {%- endif -%}
       </div>
     {%- endfor -%}
 
@@ -235,7 +251,10 @@
           });
         }
 
-        this.handleBreakpoint = () => this.playActive();
+        this.handleBreakpoint = () => {
+          this.refreshFrameFlags();
+          this.playActive();
+        };
         this.mobileQuery.addEventListener('change', this.handleBreakpoint);
 
         if (this.playButton) {
@@ -439,6 +458,7 @@
 
         const reveal = () => {
           video.dataset.hasFrame = 'true';
+          this.refreshFrameFlags();
         };
 
         if (typeof video.requestVideoFrameCallback === 'function') {
@@ -491,6 +511,19 @@
           },
           { passive: true }
         );
+      }
+
+      /**
+       * A slide's poster lifts once the video actually showing on this breakpoint has painted.
+       * Recomputed rather than latched, so crossing 750px onto a video that has never decoded
+       * puts the poster back instead of uncovering an empty frame.
+       */
+      refreshFrameFlags() {
+        for (const slide of this.slides) {
+          const video = this.activeVideo(slide);
+
+          slide.dataset.hasFrame = String(!!video && video.dataset.hasFrame === 'true');
+        }
       }
 
       syncState() {
@@ -558,6 +591,14 @@
     object-fit: cover;
   }
 
+  /* The poster is a <picture>, so the cover sizing has to reach the image it wraps. */
+  .herovideo__poster img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
   .herovideo__poster {
     opacity: 1;
     transition: opacity 0.4s ease;
@@ -567,9 +608,7 @@
      video keeps showing its last frame, so bringing the poster back would only cause a flicker
      every time the slide changes or the section scrolls out of view. Each viewport is matched to
      its own video so a breakpoint change can't uncover one that hasn't decoded yet. */
-  .herovideo__video--all[data-has-frame='true'] ~ .herovideo__poster--all,
-  .herovideo__video--desktop[data-has-frame='true'] ~ .herovideo__poster--desktop,
-  .herovideo__video--mobile[data-has-frame='true'] ~ .herovideo__poster--mobile {
+  .herovideo__slide[data-has-frame='true'] .herovideo__poster {
     opacity: 0;
   }
 
@@ -579,8 +618,7 @@
     object-fit: cover;
   }
 
-  .herovideo__video--desktop,
-  .herovideo__poster--desktop {
+  .herovideo__video--desktop {
     display: none;
   }
 
@@ -707,13 +745,11 @@
       height: var(--herovideo-height-desktop, auto);
     }
 
-    .herovideo__video--desktop,
-    .herovideo__poster--desktop {
+    .herovideo__video--desktop {
       display: block;
     }
 
-    .herovideo__video--mobile,
-    .herovideo__poster--mobile {
+    .herovideo__video--mobile {
       display: none;
     }
 
