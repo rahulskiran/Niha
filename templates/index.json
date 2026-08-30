@@ -9,6 +9,21 @@
  */
 {
   "sections": {
+    "lasthero_DQNNJW": {
+      "type": "lasthero",
+      "name": "Last hero",
+      "settings": {
+        "video_desktop": "shopify://files/videos/IMG_7579.MP4",
+        "aspect_ratio_desktop": "16/9",
+        "video_mobile": "shopify://files/videos/IMG_7580.MP4",
+        "aspect_ratio_mobile": "9/16",
+        "video_loop": true,
+        "respect_reduced_motion": false,
+        "background_color": "#000000",
+        "overlay_color": "#000000",
+        "overlay_opacity": 0
+      }
+    },
     "hero_sec_new_HMtGEi": {
       "type": "HeroSecNew",
       "blocks": {
@@ -23,6 +38,7 @@
       "block_order": [
         "slide_1"
       ],
+      "disabled": true,
       "name": "Hero video New",
       "settings": {
         "auto_advance": true,
@@ -579,24 +595,10 @@
         "color_line": "#dcd7cb",
         "color_wine": "#1f3d2c"
       }
-    },
-    "lasthero_DQNNJW": {
-      "type": "lasthero",
-      "name": "Last hero",
-      "settings": {
-        "video_desktop": "shopify://files/videos/Untitled design.mp4",
-        "aspect_ratio_desktop": "16/9",
-        "video_mobile": "shopify://files/videos/mobile version.mp4",
-        "aspect_ratio_mobile": "9/16",
-        "video_loop": true,
-        "respect_reduced_motion": false,
-        "background_color": "#000000",
-        "overlay_color": "#000000",
-        "overlay_opacity": 0
-      }
     }
   },
   "order": [
+    "lasthero_DQNNJW",
     "hero_sec_new_HMtGEi",
     "category_grid_tXeaKU",
     "threesec_zkWyDr",
@@ -606,7 +608,6 @@
     "new1_fFtKqV",
     "product_list_fa6P9H",
     "recentsale_EtUKx8",
-    "product_grid_hbwjwk",
-    "lasthero_DQNNJW"
+    "product_grid_hbwjwk"
   ]
 }
