@@ -16,7 +16,7 @@
       "name": "Custom Announcement Bar",
       "settings": {
         "show_announcement": true,
-        "text": "<p>The Perfect Fit. Enjoy 50% off on every product.</p>",
+        "text": "<p>“NIHA Archive Sale”<br/>“Last Chance to Own NIHA at 50% Off”</p>",
         "text_size": 14,
         "mobile_text_size": 11,
         "message_gap": 80,
