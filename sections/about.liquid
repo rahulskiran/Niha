@@ -1,0 +1,245 @@
+{%- liquid
+  assign settings = section.settings
+-%}
+
+{%- capture about_style -%}
+  --about-bg: {{ settings.color_background }};
+  --about-ink: {{ settings.color_ink }};
+  --about-muted: {{ settings.color_muted }};
+  --about-accent: {{ settings.color_accent }};
+  --about-max-width: {{ settings.max_width }}px;
+  --about-padding-inline: {{ settings.padding_inline }}px;
+  --about-padding-block-start: {{ settings.padding_block_start }}px;
+  --about-padding-block-end: {{ settings.padding_block_end }}px;
+  --about-heading-font-family: var(--font-{{ settings.heading_font }}--family);
+  --about-body-font-family: var(--font-{{ settings.body_font }}--family);
+{%- endcapture -%}
+
+<div class="about-page" style="{{ about_style }}" {{ section.shopify_attributes }}>
+  <div class="about">
+    {%- if settings.kicker != blank -%}
+      <p class="about__kicker">{{ settings.kicker }}</p>
+    {%- endif -%}
+
+    {%- if settings.quote != blank -%}
+      <p class="about__quote">{{ settings.quote }}</p>
+    {%- endif -%}
+
+    {%- if settings.body != blank -%}
+      <div class="about__body">{{ settings.body }}</div>
+    {%- endif -%}
+
+    {%- if settings.closing != blank -%}
+      <p class="about__closing">{{ settings.closing }}</p>
+    {%- endif -%}
+  </div>
+</div>
+
+{% stylesheet %}
+  .about-page {
+    padding-inline: var(--about-padding-inline, 40px);
+    padding-block: var(--about-padding-block-start, 96px) var(--about-padding-block-end, 96px);
+    background: var(--about-bg, #ffffff);
+  }
+
+  .about {
+    max-width: var(--about-max-width, 640px);
+    margin-inline: auto;
+    text-align: center;
+  }
+
+  .about__kicker {
+    margin: 0 0 28px;
+    font-family: var(--about-body-font-family);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--about-accent, #1f3d2c);
+  }
+
+  .about__quote {
+    margin: 0 0 48px;
+    font-family: var(--about-heading-font-family);
+    font-weight: 400;
+    font-style: italic;
+    font-size: 30px;
+    line-height: 1.35;
+    color: var(--about-ink, #201c19);
+  }
+
+  .about__body {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    font-family: var(--about-body-font-family);
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--about-muted, #57534a);
+  }
+
+  .about__body p {
+    margin: 0;
+  }
+
+  .about__closing {
+    margin: 56px 0 0;
+    font-family: var(--about-heading-font-family);
+    font-weight: 400;
+    font-size: 22px;
+    letter-spacing: 0.01em;
+    color: var(--about-ink, #201c19);
+  }
+
+  @media screen and (max-width: 599px) {
+    .about-page {
+      padding-inline: 24px;
+    }
+
+    .about__quote {
+      font-size: 24px;
+    }
+
+    .about__closing {
+      font-size: 19px;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "About",
+  "tag": "section",
+  "class": "about-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "text",
+      "id": "kicker",
+      "label": "Kicker",
+      "default": "About"
+    },
+    {
+      "type": "text",
+      "id": "quote",
+      "label": "Pull quote",
+      "default": "Made for the woman who knows who she is."
+    },
+    {
+      "type": "richtext",
+      "id": "body",
+      "label": "Body copy"
+    },
+    {
+      "type": "text",
+      "id": "closing",
+      "label": "Closing line",
+      "default": "This is Niha. Welcome in."
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "range",
+      "id": "max_width",
+      "label": "Max width",
+      "min": 400,
+      "max": 900,
+      "step": 20,
+      "unit": "px",
+      "default": 640
+    },
+    {
+      "type": "range",
+      "id": "padding_inline",
+      "label": "Side padding",
+      "min": 0,
+      "max": 80,
+      "step": 4,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding_block_start",
+      "label": "Top padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 96
+    },
+    {
+      "type": "range",
+      "id": "padding_block_end",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 96
+    },
+    {
+      "type": "header",
+      "content": "Style"
+    },
+    {
+      "type": "select",
+      "id": "heading_font",
+      "label": "Heading font",
+      "options": [
+        { "value": "body", "label": "Body" },
+        { "value": "subheading", "label": "Subheading" },
+        { "value": "heading", "label": "Heading" },
+        { "value": "accent", "label": "Accent" }
+      ],
+      "default": "heading"
+    },
+    {
+      "type": "select",
+      "id": "body_font",
+      "label": "Body font",
+      "options": [
+        { "value": "body", "label": "Body" },
+        { "value": "subheading", "label": "Subheading" },
+        { "value": "heading", "label": "Heading" },
+        { "value": "accent", "label": "Accent" }
+      ],
+      "default": "body"
+    },
+    {
+      "type": "color",
+      "id": "color_background",
+      "label": "Background",
+      "default": "#FFFFFF"
+    },
+    {
+      "type": "color",
+      "id": "color_ink",
+      "label": "Text",
+      "default": "#201C19"
+    },
+    {
+      "type": "color",
+      "id": "color_muted",
+      "label": "Body text",
+      "default": "#57534A"
+    },
+    {
+      "type": "color",
+      "id": "color_accent",
+      "label": "Accent",
+      "default": "#1F3D2C"
+    }
+  ],
+  "presets": [
+    {
+      "name": "About"
+    }
+  ]
+}
+{% endschema %}

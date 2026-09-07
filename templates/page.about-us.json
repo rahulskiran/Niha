@@ -1,62 +1,14 @@
-/*
- * ------------------------------------------------------------
- * IMPORTANT: The contents of this file are auto-generated.
- *
- * This file may be updated by the Shopify admin theme editor
- * or related systems. Please exercise caution as any changes
- * made to this file may be overwritten.
- * ------------------------------------------------------------
- */
 {
   "sections": {
     "main": {
-      "type": "main-page",
-      "blocks": {
-        "heading": {
-          "type": "text",
-          "name": "Title",
-          "settings": {
-            "text": "<h1>{{ closest.page.title }}</h1>",
-            "width": "100%",
-            "max_width": "normal",
-            "alignment": "center",
-            "type_preset": "h2",
-            "font": "var(--font-primary--family)",
-            "font_size": "",
-            "line_height": "normal",
-            "letter_spacing": "normal",
-            "case": "none",
-            "wrap": "pretty",
-            "background": false,
-            "background_color": "#000000",
-            "corner_radius": 0,
-            "padding-block-start": 0,
-            "padding-block-end": 0,
-            "padding-inline-start": 0,
-            "padding-inline-end": 0
-          },
-          "blocks": {}
-        },
-        "page-content": {
-          "type": "page-content",
-          "settings": {},
-          "blocks": {}
-        }
-      },
-      "block_order": [
-        "heading",
-        "page-content"
-      ],
+      "type": "about",
       "settings": {
-        "content_direction": "column",
-        "gap": 55,
-        "background_color": "{{ settings.color_palette.background }}",
-        "padding-block-start": 40,
-        "padding-block-end": 80
+        "kicker": "About",
+        "quote": "Made for the woman who knows who she is.",
+        "body": "<p>Niha was born from a simple idea that what you wear should feel like it was made just for that moment. The dinner you got dressed up for weeks in advance. The night you didn't plan to feel this good in.</p><p>Every piece is designed with intention, fabric that moves with you, fits that flatter without trying too hard, details you'll notice long after the first wear.</p><p>Every piece is created to make you feel confident in your own skin because the most beautiful thing you can wear is YOU.</p>",
+        "closing": "This is Niha. Welcome in."
       }
     }
   },
-  "order": [
-    "main"
-  ]
+  "order": ["main"]
 }
