@@ -18,7 +18,7 @@
         "show_announcement": true,
         "text": "<p>“NIHA Archive Sale”<br/>“Last Chance to Own NIHA at 50% Off”</p>",
         "text_size": 14,
-        "mobile_text_size": 11,
+        "mobile_text_size": 15,
         "message_gap": 80,
         "mobile_message_gap": 45,
         "bg_color": "#031609",
