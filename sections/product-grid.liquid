@@ -66,11 +66,16 @@
         assign variant = product.selected_or_first_available_variant
         assign form_id = 'ProductGrid-' | append: section.id | append: '-' | append: product.id
 
-        # Every card shows a flat 50% off against a cutoff price double the real price,
-        # regardless of the variant's own compare-at price.
-        assign on_sale = true
-        assign percent_off = 50
-        assign display_was_price = variant.price | times: 2
+        # Discount tag and cutoff price are both derived from the product's own
+        # compare-at price - no tag shows unless there's a genuine discount.
+        assign on_sale = false
+        assign percent_off = 0
+        assign display_was_price = 0
+        if variant.compare_at_price > variant.price
+          assign on_sale = true
+          assign percent_off = variant.compare_at_price | minus: variant.price | times: 100.0 | divided_by: variant.compare_at_price | round
+          assign display_was_price = variant.compare_at_price
+        endif
       -%}
 
       {%- unless product.title == blank or variant == blank -%}

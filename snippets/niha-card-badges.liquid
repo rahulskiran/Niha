@@ -13,11 +13,30 @@
   if product.available == false or preorder or label != blank
     assign show_bottom = true
   endif
+
+  # Discount tag is derived from the product's own compare-at price - it only
+  # shows when there's a genuine discount, and reflects the real percent off.
+  assign variant = product.selected_or_first_available_variant
+  assign on_sale = false
+  if variant.compare_at_price > variant.price
+    assign on_sale = true
+    assign percent_off = variant.compare_at_price | minus: variant.price | times: 100.0 | divided_by: variant.compare_at_price | round
+  endif
+
+  assign show_top = false
+  if badge != blank or on_sale
+    assign show_top = true
+  endif
 -%}
 
-{%- if badge != blank -%}
+{%- if show_top -%}
   <div class="niha-badges niha-badges--top">
-    <span class="niha-badge niha-badge--plain">{{ badge }}</span>
+    {%- if on_sale -%}
+      <span class="niha-badge niha-badge--sale">{{ percent_off }}% off</span>
+    {%- endif -%}
+    {%- if badge != blank -%}
+      <span class="niha-badge niha-badge--plain">{{ badge }}</span>
+    {%- endif -%}
   </div>
 {%- endif -%}
 
