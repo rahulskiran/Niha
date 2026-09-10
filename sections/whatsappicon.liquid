@@ -1,449 +1,175 @@
+{%- liquid
+  assign settings = section.settings
 
+  # wa.me only accepts digits - strip anything a merchant might reasonably type
+  # (+, spaces, dashes, parentheses) so the link still works regardless of format.
+  assign phone_digits = settings.phone_number
+    | remove: '+'
+    | remove: ' '
+    | remove: '-'
+    | remove: '('
+    | remove: ')'
+-%}
 
-{% comment %}
-  Shopify automatically wraps AI generated blocks in a wrapper section called _blocks.liquid.
-  By shipping a sections/_blocks.liquid in the theme, we override the default wrapper with a customized one.
-  More info: https://shopify.dev/docs/storefronts/themes/architecture/blocks/ai-generated-theme-blocks
-{% endcomment %}
+{%- if phone_digits != blank -%}
+  <a
+    href="https://wa.me/{{ phone_digits }}{% if settings.message != blank %}?text={{ settings.message | url_encode }}{% endif %}"
+    class="whatsapp-button whatsapp-button--{{ settings.position }}{% if settings.show_on_mobile == false %} whatsapp-button--hide-mobile{% endif %}{% if settings.show_on_desktop == false %} whatsapp-button--hide-desktop{% endif %}"
+    style="
+      --whatsapp-size: {{ settings.size }}px;
+      --whatsapp-bg: {{ settings.background_color }};
+      --whatsapp-icon-color: {{ settings.icon_color }};
+      --whatsapp-offset: {{ settings.edge_offset }}px;
+    "
+    target="_blank"
+    rel="noopener"
+    aria-label="{{ 'accessibility.chat_on_whatsapp' | t | default: 'Chat on WhatsApp' }}"
+    {{ section.shopify_attributes }}
+  >
+    <svg viewBox="0 0 32 32" fill="none" aria-hidden="true" focusable="false">
+      <path
+        fill="currentColor"
+        d="M16.004 3C9.377 3 4 8.373 4 15c0 2.294.638 4.44 1.746 6.27L4 29l7.933-1.703A11.94 11.94 0 0 0 16.004 27C22.63 27 28 21.627 28 15S22.63 3 16.004 3Zm6.965 16.845c-.294.828-1.457 1.516-2.386 1.71-.635.132-1.464.238-4.255-.914-3.573-1.474-5.873-5.077-6.052-5.313-.172-.236-1.453-1.933-1.453-3.687 0-1.755.907-2.617 1.229-2.976.323-.36.706-.45.94-.45.235 0 .47.002.674.012.216.01.507-.082.793.606.294.706.998 2.439 1.084 2.617.087.177.145.386.029.622-.116.236-.174.383-.343.59-.172.207-.36.462-.514.62-.172.177-.352.368-.152.723.201.354.892 1.472 1.916 2.384 1.316 1.174 2.427 1.538 2.782 1.715.354.177.561.148.769-.089.207-.236.882-1.03 1.117-1.384.236-.354.472-.295.792-.177.32.118 2.03.958 2.377 1.133.348.177.58.265.665.413.087.148.087.855-.207 1.683Z"
+      />
+    </svg>
+  </a>
+{%- endif -%}
 
-{% capture children %}
-  {% content_for 'blocks' %}
-{% endcapture %}
+{% stylesheet %}
+  .whatsapp-button {
+    position: fixed;
+    bottom: var(--whatsapp-offset, 24px);
+    z-index: var(--layer-overlay, 40);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--whatsapp-size, 56px);
+    height: var(--whatsapp-size, 56px);
+    background: var(--whatsapp-bg, #25d366);
+    color: var(--whatsapp-icon-color, #ffffff);
+    border-radius: 50%;
+    box-shadow: 0 3px 10px rgb(0 0 0 / 0.25);
+    text-decoration: none;
+    transition: transform 0.2s ease;
+  }
 
-{% render 'section',
-  section: section,
-  children: children,
-  section_id: section.id,
-  background_color: section.settings.background_color
-%}
+  .whatsapp-button:hover {
+    transform: scale(1.06);
+    text-decoration: none;
+  }
+
+  .whatsapp-button svg {
+    width: 58%;
+    height: 58%;
+    display: block;
+  }
+
+  .whatsapp-button--bottom-right {
+    right: var(--whatsapp-offset, 24px);
+  }
+
+  .whatsapp-button--bottom-left {
+    left: var(--whatsapp-offset, 24px);
+  }
+
+  @media screen and (max-width: 749px) {
+    .whatsapp-button--hide-mobile {
+      display: none;
+    }
+  }
+
+  @media screen and (min-width: 750px) {
+    .whatsapp-button--hide-desktop {
+      display: none;
+    }
+  }
+{% endstylesheet %}
 
 {% schema %}
 {
-  "name": "t:names.section",
-  "class": "section-wrapper",
-  "blocks": [
-    {
-      "type": "@theme"
-    },
-    {
-      "type": "@app"
-    },
-    {
-      "type": "_divider"
-    }
-  ],
+  "name": "WhatsApp icon",
+  "tag": "section",
+  "class": "whatsapp-icon-section",
   "settings": [
     {
+      "type": "text",
+      "id": "phone_number",
+      "label": "WhatsApp number",
+      "info": "Include the country code, e.g. 919876543210. The button stays hidden until this is set.",
+      "placeholder": "919876543210"
+    },
+    {
+      "type": "text",
+      "id": "message",
+      "label": "Pre-filled message",
+      "default": "Hi! I have a question about"
+    },
+    {
       "type": "header",
-      "content": "t:content.layout"
+      "content": "Position"
     },
     {
       "type": "select",
-      "id": "content_direction",
-      "label": "t:settings.direction",
+      "id": "position",
+      "label": "Corner",
       "options": [
-        {
-          "value": "column",
-          "label": "t:options.vertical"
-        },
-        {
-          "value": "row",
-          "label": "t:options.horizontal"
-        }
+        { "value": "bottom-right", "label": "Bottom right" },
+        { "value": "bottom-left", "label": "Bottom left" }
       ],
-      "default": "column"
-    },
-    {
-      "type": "checkbox",
-      "id": "vertical_on_mobile",
-      "label": "t:settings.vertical_on_mobile",
-      "default": true,
-      "visible_if": "{{ section.settings.content_direction == 'row' }}"
-    },
-    {
-      "type": "select",
-      "id": "horizontal_alignment",
-      "label": "t:settings.alignment",
-      "options": [
-        {
-          "value": "flex-start",
-          "label": "t:options.left"
-        },
-        {
-          "value": "center",
-          "label": "t:options.center"
-        },
-        {
-          "value": "flex-end",
-          "label": "t:options.right"
-        },
-        {
-          "value": "space-between",
-          "label": "t:options.space_between"
-        }
-      ],
-      "default": "flex-start",
-      "visible_if": "{{ section.settings.content_direction == 'row' }}"
-    },
-    {
-      "type": "select",
-      "id": "vertical_alignment",
-      "label": "t:settings.position",
-      "options": [
-        {
-          "value": "flex-start",
-          "label": "t:options.top"
-        },
-        {
-          "value": "center",
-          "label": "t:options.center"
-        },
-        {
-          "value": "flex-end",
-          "label": "t:options.bottom"
-        }
-      ],
-      "default": "center",
-      "visible_if": "{{ section.settings.content_direction == 'row' }}"
-    },
-    {
-      "type": "checkbox",
-      "id": "align_baseline",
-      "label": "t:settings.align_baseline",
-      "default": false,
-      "visible_if": "{{ section.settings.vertical_alignment == 'flex-end' }}"
-    },
-    {
-      "type": "select",
-      "id": "horizontal_alignment_flex_direction_column",
-      "label": "t:settings.alignment",
-      "options": [
-        {
-          "value": "flex-start",
-          "label": "t:options.left"
-        },
-        {
-          "value": "center",
-          "label": "t:options.center"
-        },
-        {
-          "value": "flex-end",
-          "label": "t:options.right"
-        }
-      ],
-      "default": "flex-start",
-      "visible_if": "{{ section.settings.content_direction != 'row' }}"
-    },
-    {
-      "type": "select",
-      "id": "vertical_alignment_flex_direction_column",
-      "label": "t:settings.position",
-      "options": [
-        {
-          "value": "flex-start",
-          "label": "t:options.top"
-        },
-        {
-          "value": "center",
-          "label": "t:options.center"
-        },
-        {
-          "value": "flex-end",
-          "label": "t:options.bottom"
-        },
-        {
-          "value": "space-between",
-          "label": "t:options.space_between"
-        }
-      ],
-      "default": "center",
-      "visible_if": "{{ section.settings.content_direction == 'column' }}"
+      "default": "bottom-right"
     },
     {
       "type": "range",
-      "id": "gap",
-      "label": "t:settings.gap",
-      "min": 0,
-      "max": 100,
-      "step": 1,
+      "id": "edge_offset",
+      "label": "Edge spacing",
+      "min": 8,
+      "max": 64,
+      "step": 4,
       "unit": "px",
-      "default": 12
-    },
-    {
-      "type": "header",
-      "content": "t:content.size"
-    },
-    {
-      "type": "select",
-      "id": "section_width",
-      "label": "t:settings.width",
-      "options": [
-        {
-          "value": "page-width",
-          "label": "t:options.page"
-        },
-        {
-          "value": "full-width",
-          "label": "t:options.full"
-        }
-      ],
-      "default": "page-width"
-    },
-    {
-      "type": "select",
-      "id": "section_height",
-      "label": "t:settings.height",
-      "options": [
-        {
-          "value": "",
-          "label": "t:options.auto"
-        },
-        {
-          "value": "small",
-          "label": "t:options.small"
-        },
-        {
-          "value": "medium",
-          "label": "t:options.medium"
-        },
-        {
-          "value": "large",
-          "label": "t:options.large"
-        },
-        {
-          "value": "full-screen",
-          "label": "t:options.full_screen"
-        },
-        {
-          "value": "custom",
-          "label": "t:options.custom"
-        }
-      ],
-      "default": ""
+      "default": 24
     },
     {
       "type": "range",
-      "id": "section_height_custom",
-      "label": "t:settings.custom_height",
-      "min": 0,
-      "max": 100,
-      "step": 1,
-      "default": 50,
-      "unit": "%",
-      "visible_if": "{{ section.settings.section_height == 'custom' }}"
+      "id": "size",
+      "label": "Button size",
+      "min": 40,
+      "max": 80,
+      "step": 4,
+      "unit": "px",
+      "default": 56
+    },
+    {
+      "type": "checkbox",
+      "id": "show_on_mobile",
+      "label": "Show on mobile",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_on_desktop",
+      "label": "Show on desktop",
+      "default": true
     },
     {
       "type": "header",
-      "content": "t:content.appearance"
-    },
-    {
-      "type": "select",
-      "id": "background_media",
-      "label": "t:settings.background_media",
-      "options": [
-        {
-          "value": "none",
-          "label": "t:options.none"
-        },
-        {
-          "value": "image",
-          "label": "t:options.image"
-        },
-        {
-          "value": "video",
-          "label": "t:options.video"
-        }
-      ],
-      "default": "none"
+      "content": "Colors"
     },
     {
       "type": "color",
       "id": "background_color",
-      "label": "t:settings.background_color",
-      "placeholder": "t:settings.default",
-      "visible_if": "{{ section.settings.background_media == 'none' }}"
-    },
-    {
-      "type": "video",
-      "id": "video",
-      "label": "t:settings.video",
-      "visible_if": "{{ section.settings.background_media == 'video' }}"
-    },
-    {
-      "type": "select",
-      "id": "video_position",
-      "label": "t:settings.video_position",
-      "options": [
-        {
-          "value": "cover",
-          "label": "t:options.cover"
-        },
-        {
-          "value": "contain",
-          "label": "t:options.contain"
-        }
-      ],
-      "default": "cover",
-      "visible_if": "{{ section.settings.background_media == 'video' }}"
-    },
-    {
-      "type": "image_picker",
-      "id": "background_image",
-      "label": "t:settings.image",
-      "visible_if": "{{ section.settings.background_media == 'image' }}"
-    },
-    {
-      "type": "select",
-      "id": "background_image_position",
-      "label": "t:settings.image_position",
-      "options": [
-        {
-          "value": "cover",
-          "label": "t:options.cover"
-        },
-        {
-          "value": "fit",
-          "label": "t:options.fit"
-        }
-      ],
-      "default": "cover",
-      "visible_if": "{{ section.settings.background_media == 'image' }}"
-    },
-    {
-      "type": "checkbox",
-      "id": "toggle_overlay",
-      "label": "t:settings.background_overlay"
+      "label": "Background",
+      "default": "#25D366"
     },
     {
       "type": "color",
-      "id": "overlay_color",
-      "label": "t:settings.overlay_color",
-      "alpha": true,
-      "default": "#00000026",
-      "visible_if": "{{ section.settings.toggle_overlay }}"
-    },
-    {
-      "type": "select",
-      "id": "overlay_style",
-      "label": "t:settings.overlay_style",
-      "options": [
-        {
-          "value": "solid",
-          "label": "t:options.solid"
-        },
-        {
-          "value": "gradient",
-          "label": "t:options.gradient"
-        }
-      ],
-      "default": "solid",
-      "visible_if": "{{ section.settings.toggle_overlay }}"
-    },
-    {
-      "type": "select",
-      "id": "gradient_direction",
-      "label": "t:settings.gradient_direction",
-      "options": [
-        {
-          "value": "to top",
-          "label": "t:options.up"
-        },
-        {
-          "value": "to bottom",
-          "label": "t:options.down"
-        }
-      ],
-      "default": "to top",
-      "visible_if": "{{ section.settings.toggle_overlay and section.settings.overlay_style == 'gradient' }}"
-    },
-    {
-      "type": "header",
-      "content": "t:content.borders"
-    },
-    {
-      "type": "select",
-      "id": "border",
-      "label": "t:settings.style",
-      "options": [
-        {
-          "value": "none",
-          "label": "t:options.none"
-        },
-        {
-          "value": "solid",
-          "label": "t:options.solid"
-        }
-      ],
-      "default": "none"
-    },
-    {
-      "type": "range",
-      "id": "border_width",
-      "min": 0,
-      "max": 100,
-      "step": 1,
-      "unit": "px",
-      "label": "t:settings.thickness",
-      "default": 1,
-      "visible_if": "{{ section.settings.border != 'none' }}"
-    },
-    {
-      "type": "range",
-      "id": "border_opacity",
-      "min": 0,
-      "max": 100,
-      "step": 1,
-      "unit": "%",
-      "label": "t:settings.opacity",
-      "default": 100,
-      "visible_if": "{{ section.settings.border != 'none' }}"
-    },
-    {
-      "type": "color",
-      "id": "border_color",
-      "label": "t:settings.color",
-      "placeholder": "t:settings.default",
-      "visible_if": "{{ section.settings.border != 'none' }}"
-    },
-    {
-      "type": "range",
-      "id": "border_radius",
-      "label": "t:settings.border_radius",
-      "min": 0,
-      "max": 100,
-      "step": 1,
-      "unit": "px",
-      "default": 0
-    },
-    {
-      "type": "header",
-      "content": "t:content.padding"
-    },
-    {
-      "type": "range",
-      "id": "padding-block-start",
-      "label": "t:settings.top",
-      "min": 0,
-      "max": 100,
-      "step": 1,
-      "unit": "px",
-      "default": 0
-    },
-    {
-      "type": "range",
-      "id": "padding-block-end",
-      "label": "t:settings.bottom",
-      "min": 0,
-      "max": 100,
-      "step": 1,
-      "unit": "px",
-      "default": 0
+      "id": "icon_color",
+      "label": "Icon",
+      "default": "#FFFFFF"
     }
   ],
   "presets": [
     {
-      "name": "t:names.custom_section",
-      "category": "t:categories.layout"
+      "name": "WhatsApp icon"
     }
   ]
 }
