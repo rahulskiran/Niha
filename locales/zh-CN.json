@@ -29,6 +29,7 @@
     "slider_label": "滑块"
   },
   "accessibility": {
+    "chat_on_whatsapp": "通过 WhatsApp 与我们聊天",
     "play_model": "演示 3D 模型",
     "play_video": "播放视频",
     "unit_price": "单价",

@@ -2154,5 +2154,82 @@
         "default": "equal-width-buttons"
       }
     ]
+  },
+  {
+    "name": "WhatsApp",
+    "settings": [
+      {
+        "type": "paragraph",
+        "content": "Shows a floating WhatsApp chat button on every page. The button only appears on the live store once a number is entered below."
+      },
+      {
+        "type": "checkbox",
+        "id": "whatsapp_enabled",
+        "label": "Show WhatsApp button",
+        "default": true
+      },
+      {
+        "type": "text",
+        "id": "whatsapp_number",
+        "label": "WhatsApp number",
+        "info": "Include the country code, for example 919876543210. Spaces, dashes and + are fine.",
+        "placeholder": "919876543210"
+      },
+      {
+        "type": "text",
+        "id": "whatsapp_message",
+        "label": "Pre-filled message",
+        "info": "Optional. Filled into the chat box when the customer taps the button.",
+        "default": "Hi! I'd like to know more about your products."
+      },
+      {
+        "type": "select",
+        "id": "whatsapp_position",
+        "label": "Position",
+        "options": [
+          {
+            "value": "bottom-right",
+            "label": "Bottom right"
+          },
+          {
+            "value": "bottom-left",
+            "label": "Bottom left"
+          }
+        ],
+        "default": "bottom-right"
+      },
+      {
+        "type": "range",
+        "id": "whatsapp_size",
+        "label": "Button size",
+        "min": 40,
+        "max": 80,
+        "step": 2,
+        "unit": "px",
+        "default": 56
+      },
+      {
+        "type": "range",
+        "id": "whatsapp_offset",
+        "label": "Distance from edge",
+        "min": 8,
+        "max": 64,
+        "step": 2,
+        "unit": "px",
+        "default": 24
+      },
+      {
+        "type": "checkbox",
+        "id": "whatsapp_show_mobile",
+        "label": "Show on mobile",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "whatsapp_show_desktop",
+        "label": "Show on desktop",
+        "default": true
+      }
+    ]
   }
 ]

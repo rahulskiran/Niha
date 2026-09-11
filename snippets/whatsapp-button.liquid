@@ -1,0 +1,130 @@
+{% doc %}
+  Renders a floating WhatsApp chat button that links to the store's WhatsApp
+  number. Configured under Theme settings > WhatsApp.
+
+  Render this from layout/theme.liquid, outside .page-wrapper: at desktop widths
+  that wrapper is its own scrolling container (height: 100dvh; overflow-y: auto -
+  see assets/base.css), and a position: fixed element nested inside a scrolling
+  ancestor isn't reliably pinned to the viewport across browsers.
+{% enddoc %}
+
+{%- liquid
+  # wa.me only accepts digits, so strip whatever separators the number was typed
+  # with (+, spaces, dashes, dots, parentheses) and keep the country code.
+  assign phone_digits = settings.whatsapp_number | remove: '+' | remove: ' ' | remove: '-' | remove: '.' | remove: '(' | remove: ')'
+
+  assign has_number = false
+  if phone_digits != blank
+    assign has_number = true
+  endif
+
+  # With no number the button would be a dead link, so it isn't rendered at all -
+  # except in the theme editor, where it shows as a disabled placeholder so the
+  # merchant can see where it will sit once a number is entered.
+  assign render_button = false
+  if settings.whatsapp_enabled and has_number
+    assign render_button = true
+  elsif settings.whatsapp_enabled and request.design_mode
+    assign render_button = true
+  endif
+-%}
+
+{%- if render_button -%}
+  <a
+    class="whatsapp-button whatsapp-button--{{ settings.whatsapp_position }}
+      {%- if settings.whatsapp_show_mobile == false %} whatsapp-button--hide-mobile{% endif %}
+      {%- if settings.whatsapp_show_desktop == false %} whatsapp-button--hide-desktop{% endif %}
+      {%- unless has_number %} whatsapp-button--placeholder{% endunless %}"
+    {% if has_number -%}
+      href="https://wa.me/{{ phone_digits }}{% if settings.whatsapp_message != blank %}?text={{ settings.whatsapp_message | url_encode }}{% endif %}"
+      target="_blank"
+      rel="noopener noreferrer"
+    {%- else -%}
+      href="#"
+      aria-disabled="true"
+      title="Add a WhatsApp number in Theme settings > WhatsApp to activate this button."
+    {%- endif %}
+    style="
+      --whatsapp-size: {{ settings.whatsapp_size }}px;
+      --whatsapp-offset: {{ settings.whatsapp_offset }}px;
+    "
+    aria-label="{{ 'accessibility.chat_on_whatsapp' | t }}"
+  >
+    <svg
+      class="whatsapp-button__icon"
+      viewBox="0 0 20 20"
+      fill="none"
+      aria-hidden="true"
+      focusable="false"
+    >
+      {% render 'icon', icon: 'whatsapp' %}
+    </svg>
+  </a>
+
+  <style>
+    .whatsapp-button {
+      position: fixed;
+      bottom: var(--whatsapp-offset, 24px);
+      z-index: var(--layer-sticky, 8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: var(--whatsapp-size, 56px);
+      height: var(--whatsapp-size, 56px);
+      border-radius: 50%;
+      background-color: #25d366;
+      color: #fff;
+      box-shadow: 0 2px 10px rgb(0 0 0 / 25%);
+      text-decoration: none;
+      transition: transform var(--animation-speed, 0.2s) var(--animation-easing, ease);
+    }
+
+    .whatsapp-button:hover {
+      transform: scale(1.06);
+      color: #fff;
+      text-decoration: none;
+    }
+
+    .whatsapp-button--bottom-right {
+      right: var(--whatsapp-offset, 24px);
+    }
+
+    .whatsapp-button--bottom-left {
+      left: var(--whatsapp-offset, 24px);
+    }
+
+    .whatsapp-button--placeholder {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .whatsapp-button__icon {
+      width: 60%;
+      height: 60%;
+      display: block;
+      fill: currentcolor;
+    }
+
+    @media screen and (max-width: 749px) {
+      .whatsapp-button--hide-mobile {
+        display: none;
+      }
+    }
+
+    @media screen and (min-width: 750px) {
+      .whatsapp-button--hide-desktop {
+        display: none;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .whatsapp-button {
+        transition: none;
+      }
+
+      .whatsapp-button:hover {
+        transform: none;
+      }
+    }
+  </style>
+{%- endif -%}

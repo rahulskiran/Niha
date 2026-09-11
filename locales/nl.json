@@ -29,6 +29,7 @@
     "slider_label": "Schuifregelaar"
   },
   "accessibility": {
+    "chat_on_whatsapp": "Chat met ons op WhatsApp",
     "play_model": "3D-model afspelen",
     "play_video": "Video afspelen",
     "unit_price": "Eenheidsprijs",

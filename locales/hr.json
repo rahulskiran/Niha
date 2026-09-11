@@ -29,6 +29,7 @@
     "slider_label": "Kliznik"
   },
   "accessibility": {
+    "chat_on_whatsapp": "Razgovarajte s nama na WhatsAppu",
     "play_model": "Reproduciraj 3D model",
     "play_video": "Reproduciraj videozapis",
     "unit_price": "Jedinična cijena",

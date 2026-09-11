@@ -190,6 +190,14 @@
     {% render 'cart-drawer', render_wrapper: true %}
     {% render 'theme-drawer' %}
 
+    {% comment %}
+      Rendered outside .page-wrapper, like the overlays above: at desktop widths
+      .page-wrapper is its own scrolling container (height: 100dvh; overflow-y: auto -
+      assets/base.css), and position: fixed inside a scrolling ancestor isn't
+      reliably pinned to the viewport across browsers.
+    {% endcomment %}
+    {% render 'whatsapp-button' %}
+
     {% render 'search-modal' %}
 
     {% if settings.quick_add or settings.mobile_quick_add %}

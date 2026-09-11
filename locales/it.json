@@ -29,6 +29,7 @@
     "slider_label": "Cursore"
   },
   "accessibility": {
+    "chat_on_whatsapp": "Scrivici su WhatsApp",
     "play_model": "Riproduci modello 3D",
     "play_video": "Riproduci video",
     "unit_price": "Prezzo unitario",

@@ -29,6 +29,7 @@
     "slider_label": "Ползунок"
   },
   "accessibility": {
+    "chat_on_whatsapp": "Напишите нам в WhatsApp",
     "play_model": "Открыть объемную модель",
     "play_video": "Воспроизвести видео",
     "unit_price": "Цена за единицу",

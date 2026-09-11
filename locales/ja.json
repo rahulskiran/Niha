@@ -29,6 +29,7 @@
     "slider_label": "スライダー"
   },
   "accessibility": {
+    "chat_on_whatsapp": "WhatsAppでチャットする",
     "play_model": "3Dモデルを再生",
     "play_video": "ビデオを再生",
     "unit_price": "単価",

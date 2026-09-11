@@ -29,6 +29,7 @@
     "slider_label": "Kaydırıcı"
   },
   "accessibility": {
+    "chat_on_whatsapp": "WhatsApp'tan bize yazın",
     "play_model": "3B modeli oynat",
     "play_video": "Videoyu oynat",
     "unit_price": "Birim fiyatı",

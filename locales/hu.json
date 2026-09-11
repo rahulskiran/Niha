@@ -29,6 +29,7 @@
     "slider_label": "Csúszka"
   },
   "accessibility": {
+    "chat_on_whatsapp": "Csevegjen velünk a WhatsAppon",
     "play_model": "3D-modell lejátszása",
     "play_video": "Videó lejátszása",
     "unit_price": "Egységár",
