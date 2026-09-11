@@ -162,34 +162,18 @@
           });
       }
 
+      formatDayRange() {
+        return this.minDays === this.maxDays
+          ? `${this.minDays} day${this.minDays === 1 ? '' : 's'}`
+          : `${this.minDays}-${this.maxDays} days`;
+      }
+
       showDeliveryMessage(location) {
-        const startDate = new Date();
-        startDate.setDate(startDate.getDate() + this.minDays);
-        
-        const endDate = new Date();
-        endDate.setDate(endDate.getDate() + this.maxDays);
-
-        const formatDate = (date) => {
-          const options = { month: 'short', day: 'numeric' };
-          return date.toLocaleDateString('en-US', options);
-        };
-
-        this.messageElement.innerHTML = `Delivery to <span class="ai-delivery-date__location-{{ ai_gen_id }}">${location}</span> by <span class="ai-delivery-date__date-{{ ai_gen_id }}">${formatDate(startDate)} - ${formatDate(endDate)}</span>`;
+        this.messageElement.innerHTML = `Delivery to <span class="ai-delivery-date__location-{{ ai_gen_id }}">${location}</span> in <span class="ai-delivery-date__date-{{ ai_gen_id }}">${this.formatDayRange()}</span>`;
       }
 
       showDefaultMessage() {
-        const startDate = new Date();
-        startDate.setDate(startDate.getDate() + this.minDays);
-        
-        const endDate = new Date();
-        endDate.setDate(endDate.getDate() + this.maxDays);
-
-        const formatDate = (date) => {
-          const options = { month: 'short', day: 'numeric' };
-          return date.toLocaleDateString('en-US', options);
-        };
-
-        this.messageElement.innerHTML = `Estimated delivery by <span class="ai-delivery-date__date-{{ ai_gen_id }}">${formatDate(startDate)} - ${formatDate(endDate)}</span>`;
+        this.messageElement.innerHTML = `Order will be delivered in <span class="ai-delivery-date__date-{{ ai_gen_id }}">${this.formatDayRange()}</span>`;
       }
     }
 
@@ -230,7 +214,7 @@
       "step": 1,
       "unit": "d",
       "label": "Maximum delivery days",
-      "default": 7
+      "default": 5
     },
     {
       "type": "header",
