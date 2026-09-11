@@ -14,6 +14,12 @@
     "annc_PEJMEf": {
       "type": "annc",
       "blocks": {
+        "message_QDftnR": {
+          "type": "message",
+          "settings": {
+            "text": "<p>“NIHA Archive Sale”<br/>“Last Chance to Own NIHA at 50% Off”</p>"
+          }
+        },
         "message_tRrX8e": {
           "type": "message",
           "settings": {
@@ -22,6 +28,7 @@
         }
       },
       "block_order": [
+        "message_QDftnR",
         "message_tRrX8e"
       ],
       "name": "Custom Announcement Bar",
