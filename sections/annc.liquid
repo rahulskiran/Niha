@@ -32,6 +32,28 @@
     text-align: center;
   }
 
+  /* Static State with multiple messages: stack them and crossfade between them */
+  .announcement-bar__rotator {
+    display: grid;
+    grid: [stack] auto / [stack] auto;
+    width: 100%;
+    padding: 0 20px;
+    box-sizing: border-box;
+  }
+
+  .announcement-bar__rotator-item {
+    grid-area: stack;
+    text-align: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
+  }
+
+  .announcement-bar__rotator-item.is-active {
+    opacity: 1;
+    visibility: visible;
+  }
+
   /* Scrolling State Wrapper */
   .announcement-bar__marquee-window {
     width: 100%;
@@ -108,44 +130,104 @@
   }
 {%- endstyle -%}
 
+{%- liquid
+  # Messages come from "Announcement" blocks. When none have been added, fall back
+  # to the section-level text setting so existing sections keep working unchanged.
+  assign messages = section.blocks | where: 'type', 'message'
+  assign message_count = messages.size
+
+  if message_count == 0
+    assign legacy_text = section.settings.text
+    if legacy_text == blank
+      assign legacy_text = '<p>Welcome to our store</p>'
+    endif
+  endif
+
+  # Spread the repeated marquee track evenly across messages instead of always
+  # repeating a single message 15 times, capped so a long list doesn't shrink
+  # the repeat count below what's needed to fill wide screens.
+  assign marquee_reps = 15 | divided_by: message_count | at_least: 3
+-%}
+
 {%- if section.settings.show_announcement -%}
   <div class="announcement-bar-{{ section.id }}" role="region" aria-label="Announcement">
-    
+
     {%- if section.settings.enable_scroll -%}
       <!-- SCROLLING MODE: Seamless Infinite Loop -->
       <div class="announcement-bar__marquee-window">
         <div class="announcement-bar__marquee-track">
-          
-          {%- comment -%} 
-            We generate TWO sets of repeated text. 
+
+          {%- comment -%}
+            We generate TWO sets of repeated text.
             The animation slides the whole track by 50% (the width of one set).
           {%- endcomment -%}
-          
+
           {%- for set in (1..2) -%}
             <div class="announcement-bar__item-set">
-              {%- comment -%} Repeat the message 15 times to ensure it fills any screen width {%- endcomment -%}
-              {%- for i in (1..15) -%}
-                <div class="announcement-bar__message">
-                  {%- if section.settings.text != blank -%}
-                    {{ section.settings.text }}
-                  {%- else -%}
-                    Welcome to our store
-                  {%- endif -%}
-                </div>
-              {%- endfor -%}
+              {%- if message_count > 0 -%}
+                {%- comment -%} Repeat the full message list to ensure it fills any screen width {%- endcomment -%}
+                {%- for rep in (1..marquee_reps) -%}
+                  {%- for block in messages -%}
+                    <div class="announcement-bar__message" {{ block.shopify_attributes }}>
+                      {{ block.settings.text }}
+                    </div>
+                  {%- endfor -%}
+                {%- endfor -%}
+              {%- else -%}
+                {%- comment -%} Repeat the message 15 times to ensure it fills any screen width {%- endcomment -%}
+                {%- for i in (1..15) -%}
+                  <div class="announcement-bar__message">
+                    {{ legacy_text }}
+                  </div>
+                {%- endfor -%}
+              {%- endif -%}
             </div>
           {%- endfor -%}
 
         </div>
       </div>
 
+    {%- elsif message_count > 1 -%}
+      <!-- STATIC MODE: Rotating through multiple announcements -->
+      <div
+        class="announcement-bar__rotator"
+        data-interval="{{ section.settings.static_rotate_speed }}"
+      >
+        {%- for block in messages -%}
+          <div
+            class="announcement-bar__rotator-item{% if forloop.first %} is-active{% endif %}"
+            {{ block.shopify_attributes }}
+          >
+            {{ block.settings.text }}
+          </div>
+        {%- endfor -%}
+      </div>
+      <script>
+        (function () {
+          var root = document.currentScript.previousElementSibling;
+          if (!root) return;
+          var items = root.querySelectorAll('.announcement-bar__rotator-item');
+          if (items.length <= 1) return;
+          if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+          var interval = (parseFloat(root.dataset.interval) || 4) * 1000;
+          var index = 0;
+
+          setInterval(function () {
+            items[index].classList.remove('is-active');
+            index = (index + 1) % items.length;
+            items[index].classList.add('is-active');
+          }, interval);
+        })();
+      </script>
+
     {%- else -%}
       <!-- STATIC MODE: Centered Single Text -->
       <div class="announcement-bar__content-static">
-        {%- if section.settings.text != blank -%}
-          {{ section.settings.text }}
+        {%- if message_count == 1 -%}
+          {{ messages.first.settings.text }}
         {%- else -%}
-          Welcome to our store
+          {{ legacy_text }}
         {%- endif -%}
       </div>
     {%- endif -%}
@@ -175,6 +257,7 @@
       "type": "richtext",
       "id": "text",
       "label": "Text",
+      "info": "Only used when no Announcement blocks are added below. Add blocks to show multiple announcements.",
       "default": "<p>Welcome to our store</p>"
     },
     {
@@ -253,11 +336,44 @@
       "label": "Scroll speed (duration)",
       "info": "Because the text is repeated many times, you may need a higher number (slower speed) than before.",
       "default": 40
+    },
+    {
+      "type": "range",
+      "id": "static_rotate_speed",
+      "min": 2,
+      "max": 15,
+      "step": 1,
+      "unit": "s",
+      "label": "Rotation speed",
+      "info": "Only used with scrolling text off and more than one Announcement block. Time each message stays visible before switching to the next.",
+      "default": 4
+    }
+  ],
+  "blocks": [
+    {
+      "type": "message",
+      "name": "Announcement",
+      "settings": [
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "Text",
+          "default": "<p>Welcome to our store</p>"
+        }
+      ]
     }
   ],
   "presets": [
     {
-      "name": "Custom Announcement Bar"
+      "name": "Custom Announcement Bar",
+      "blocks": [
+        {
+          "type": "message",
+          "settings": {
+            "text": "<p>Welcome to our store</p>"
+          }
+        }
+      ]
     }
   ]
 }
