@@ -1,0 +1,105 @@
+{%- doc -%}
+  Product Media Colour Group
+
+  Works out which of a product's media belong to the currently selected colour.
+
+  Media belongs to a colour when it is a variant's featured media, or when its
+  alt text names the colour. Media that belongs to no colour at all is shared
+  and is always included, so galleries never end up empty.
+
+  Renders a comma separated list of media IDs to show, or nothing at all when
+  the gallery should fall back to showing every image (no colour option, the
+  feature is off, or nothing could be matched to the selected colour).
+
+  @param {object} product - The product to group media for
+  @param {boolean} enabled - Whether colour grouping is turned on
+
+  @example
+  {% capture visible_media_ids %}
+    {% render 'product-media-color-group', product: product, enabled: true %}
+  {% endcapture %}
+{%- enddoc -%}
+{%- liquid
+  assign color_option_index = -1
+
+  if enabled and product != blank
+    assign media_group_option_names = 'color,colour,colors,colours'
+    if settings.media_grouping_option != blank
+      assign media_group_option_names = settings.media_grouping_option | downcase
+    endif
+    assign media_group_option_names = media_group_option_names | split: ','
+
+    for product_option in product.options_with_values
+      assign product_option_name = product_option.name | downcase | strip
+      for candidate_name in media_group_option_names
+        assign candidate_option_name = candidate_name | strip
+        if candidate_option_name == product_option_name
+          assign color_option_index = forloop.parentloop.index0
+          break
+        endif
+      endfor
+      if color_option_index >= 0
+        break
+      endif
+    endfor
+  endif
+-%}
+{%- if color_option_index >= 0 -%}
+  {%- liquid
+    assign color_option = product.options_with_values[color_option_index]
+    assign selected_color = product.selected_or_first_available_variant.options[color_option_index] | downcase | strip
+
+    # '|<media id>::<colour>' entries closed by a trailing '|', so every entry is
+    # delimited on both sides and a lookup cannot partially match a longer ID.
+    assign variant_media_lookup = ''
+    for variant in product.variants
+      if variant.featured_media != blank
+        assign variant_color = variant.options[color_option_index] | downcase | strip
+        assign variant_media_lookup = variant_media_lookup | append: '|' | append: variant.featured_media.id | append: '::' | append: variant_color
+      endif
+    endfor
+    assign variant_media_lookup = variant_media_lookup | append: '|'
+
+    assign grouped_ids = ''
+    assign selected_color_has_media = false
+
+    for media in product.media
+      assign media_has_color = false
+      assign media_matches_color = false
+
+      assign media_lookup_prefix = '|' | append: media.id | append: '::'
+      if variant_media_lookup contains media_lookup_prefix
+        assign media_has_color = true
+        assign media_lookup_key = media_lookup_prefix | append: selected_color | append: '|'
+        if variant_media_lookup contains media_lookup_key
+          assign media_matches_color = true
+        endif
+      endif
+
+      assign media_alt = media.alt | downcase
+      if media_alt != blank
+        for color_value in color_option.values
+          assign color_name = color_value.name | default: color_value | downcase | strip
+          if color_name != blank and media_alt contains color_name
+            assign media_has_color = true
+            if color_name == selected_color
+              assign media_matches_color = true
+            endif
+          endif
+        endfor
+      endif
+
+      if media_matches_color
+        assign selected_color_has_media = true
+      endif
+
+      if media_matches_color or media_has_color == false
+        assign grouped_ids = grouped_ids | append: ',' | append: media.id
+      endif
+    endfor
+
+    if selected_color_has_media
+      echo grouped_ids | remove_first: ','
+    endif
+  -%}
+{%- endif -%}

@@ -33,6 +33,26 @@
     assign variant_images = selected_product.images | where: 'attached_to_variant?', true | map: 'src'
   endif
 
+  # Group the gallery media by the colour option so that picking a swatch also
+  # swaps the photos. The snippet renders the media IDs to show, or nothing at
+  # all when the gallery should show every image.
+  capture visible_media_ids
+    render 'product-media-color-group', product: selected_product, enabled: block_settings.group_media_by_option
+  endcapture
+  assign visible_media_ids = visible_media_ids | strip | split: ','
+
+  assign gallery_media = selected_product.media
+  if visible_media_ids.size > 0
+    assign gallery_media = '' | split: ','
+    for media in selected_product.media
+      assign media_id = media.id | append: ''
+      if visible_media_ids contains media_id
+        assign found_media = selected_product.media | where: 'id', media.id
+        assign gallery_media = gallery_media | concat: found_media
+      endif
+    endfor
+  endif
+
   if block_settings.slideshow_controls_style == 'thumbnails'
     assign controls_on_media = false
   else
@@ -63,13 +83,13 @@
 
   assign slideshow_controls_style = block_settings.slideshow_controls_style
   # Use a counter instead of dots when there are many images to avoid cropping/overflow.
-  if slideshow_controls_style == 'dots' and selected_product.media.size > 15
+  if slideshow_controls_style == 'dots' and gallery_media.size > 15
     assign slideshow_controls_style = 'counter'
   endif
 
   assign render_slideshow_arrows = false
 
-  if selected_product.media.size <= 1
+  if gallery_media.size <= 1
     assign slideshow_class = 'product-media-gallery__slideshow--single-media slideshow--single-media'
   else
     assign slideshow_class = ''
@@ -103,20 +123,20 @@
 
   assign sorted_media = '' | split: ','
   if selected_variant_media
-    assign sorted_media = sorted_media | concat: selected_product.media | where: 'id', selected_variant_media.id
+    assign sorted_media = sorted_media | concat: gallery_media | where: 'id', selected_variant_media.id
 
-    for media in selected_product.media
+    for media in gallery_media
       if block_settings.hide_variants and variant_images contains media.src and sorted_media.size > 0
         continue
       endif
 
       if media.id != selected_variant_media.id
-        assign found_media = selected_product.media | where: 'id', media.id
+        assign found_media = gallery_media | where: 'id', media.id
         assign sorted_media = sorted_media | concat: found_media
       endif
     endfor
   else
-    assign sorted_media = selected_product.media
+    assign sorted_media = gallery_media
   endif
   assign has_image_drop = sorted_media | has: 'media_type', 'image'
 
