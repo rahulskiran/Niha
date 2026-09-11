@@ -76,11 +76,24 @@
         endif
       endif
 
-      assign media_alt = media.alt | downcase
+      assign media_alt = media.alt | downcase | strip
       if media_alt != blank
+        assign media_alt_words = media_alt | split: ' '
         for color_value in color_option.values
           assign color_name = color_value.name | default: color_value | downcase | strip
+
+          # Match either direction: the alt text spells out the full colour name
+          # ("espresso brown dress"), or the alt text is just one word of it
+          # ("Brown" against the colour "espresso brown") - since most existing
+          # photos here are tagged with only part of the colour name.
+          assign color_matches_alt = false
           if color_name != blank and media_alt contains color_name
+            assign color_matches_alt = true
+          elsif color_name != blank and media_alt_words contains color_name
+            assign color_matches_alt = true
+          endif
+
+          if color_matches_alt
             assign media_has_color = true
             if color_name == selected_color
               assign media_matches_color = true
