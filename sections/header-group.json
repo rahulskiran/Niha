@@ -13,6 +13,17 @@
   "sections": {
     "annc_PEJMEf": {
       "type": "annc",
+      "blocks": {
+        "message_tRrX8e": {
+          "type": "message",
+          "settings": {
+            "text": "<p>“ Free shipping worldwide \"</p>"
+          }
+        }
+      },
+      "block_order": [
+        "message_tRrX8e"
+      ],
       "name": "Custom Announcement Bar",
       "settings": {
         "show_announcement": true,
@@ -24,7 +35,8 @@
         "bg_color": "#031609",
         "text_color": "#ffffff",
         "enable_scroll": true,
-        "scroll_speed": 78
+        "scroll_speed": 78,
+        "static_rotate_speed": 4
       }
     },
     "header_section": {
