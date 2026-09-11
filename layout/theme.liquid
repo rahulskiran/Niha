@@ -190,15 +190,6 @@
     {% render 'cart-drawer', render_wrapper: true %}
     {% render 'theme-drawer' %}
 
-    {% comment %}
-      Rendered outside .page-wrapper, same as the overlays above: at desktop widths
-      .page-wrapper becomes its own scrolling container (height: 100dvh; overflow-y: auto -
-      see assets/base.css), and a position: fixed element nested inside a scrolling ancestor
-      like that doesn't reliably stay pinned to the real viewport across browsers. Everything
-      else that has to float above the whole page already lives out here for the same reason.
-    {% endcomment %}
-    {% section 'whatsappicon' %}
-
     {% render 'search-modal' %}
 
     {% if settings.quick_add or settings.mobile_quick_add %}
