@@ -12,11 +12,14 @@
   assign scale_max = product.metafields.reviews.rating.value.scale_max | default: 5
   assign rating_count = product.metafields.reviews.rating_count.value | default: 0
 
-  # Theme editor only: sample stars (4.3-4.9) so the design can be reviewed before real
+  # Theme editor only: sample stars (mostly 5, some 4.5) so the design can be reviewed before real
   # ratings exist. Never rendered on the storefront.
   if rating == blank and request.design_mode
-    assign sample_step = product.id | modulo: 7
-    assign rating = sample_step | divided_by: 10.0 | plus: 4.3
+    assign sample_step = product.id | modulo: 3
+    assign rating = 5.0
+    if sample_step == 0
+      assign rating = 4.5
+    endif
     assign rating_count = product.id | modulo: 90 | plus: 12
   endif
 -%}
