@@ -15,12 +15,17 @@
   endif
 
   # Discount tag is derived from the product's own compare-at price - it only
-  # shows when there's a genuine discount, and reflects the real percent off.
+  # shows when there's a genuine discount, and reflects the percent off rounded to the nearest 5.
   assign variant = product.selected_or_first_available_variant
   assign on_sale = false
   if variant.compare_at_price > variant.price
     assign on_sale = true
-    assign percent_off = variant.compare_at_price | minus: variant.price | times: 100.0 | divided_by: variant.compare_at_price | round
+    assign percent_off = variant.compare_at_price | minus: variant.price | times: 100.0 | divided_by: variant.compare_at_price
+    # Round to the nearest 5 so 18% or 19% reads as 20% off.
+    assign percent_off = percent_off | divided_by: 5.0 | round | times: 5
+    if percent_off < 5
+      assign on_sale = false
+    endif
   endif
 
   assign show_top = false
