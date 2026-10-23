@@ -336,6 +336,11 @@
     transform: translateX(var(--pill-offset, 0));
   }
 
+  /* Nothing chosen yet (e.g. Size is never preselected) - the pills would otherwise all sit in place */
+  .variant-option--buttons:not(:has(:checked)) .variant-option__button-label__pill {
+    visibility: hidden;
+  }
+
   .variant-option__button-label__text {
     pointer-events: none;
     text-align: start;
