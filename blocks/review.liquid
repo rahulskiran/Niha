@@ -125,6 +125,10 @@
       </p>
     {%- endif -%}
   </div>
+{%- elsif product != blank -%}
+  <div {{ block.shopify_attributes }}>
+    {%- render 'niha-rating', product: product -%}
+  </div>
 {%- endif -%}
 
 {% stylesheet %}
