@@ -1,6 +1,6 @@
 {%- doc -%}
   Renders a compact star rating beneath a product card title, read from the
-  product's standard reviews.rating / reviews.rating_count metafields (filled in
+  product's custom.product_rating / custom.product_rating_count metafields (filled in
   by hand in the admin or by a reviews app). Products without a rating show empty
   stars and "No reviews yet"; the theme editor shows sample stars instead.
 
@@ -8,9 +8,9 @@
 {%- enddoc -%}
 
 {%- liquid
-  assign rating = product.metafields.reviews.rating.value.rating
-  assign scale_max = product.metafields.reviews.rating.value.scale_max | default: 5
-  assign rating_count = product.metafields.reviews.rating_count.value | default: 0
+  assign rating = product.metafields.custom.product_rating.value.rating
+  assign scale_max = product.metafields.custom.product_rating.value.scale_max | default: 5
+  assign rating_count = product.metafields.custom.product_rating_count.value | default: 0
 
   # Theme editor only: sample stars (mostly 5, some 4.5) so the design can be reviewed before real
   # ratings exist. Never rendered on the storefront.
@@ -50,29 +50,33 @@
 
 {% stylesheet %}
   .niha-rating {
+    --niha-rating-gold: #c59d3f;
+
     grid-column: 1;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 6px;
-    margin: 2px 0 0;
-    font-size: 0.75rem;
+    gap: 4px 8px;
+    margin: 6px 0 8px;
+    font-size: clamp(0.6875rem, 0.65rem + 0.2vw, 0.8125rem);
     line-height: 1;
     color: var(--niha-muted, #8b8577);
   }
 
-  /* Two layers of the same five stars: a faint track, and a filled copy clipped to the rating */
+  /* Two layers of the same five stars: a faint gold track, and a filled copy clipped to the rating */
   .niha-rating__stars {
     position: relative;
     display: inline-block;
-    font-size: 0.8125rem;
-    letter-spacing: 1px;
+    font-size: clamp(0.8125rem, 0.75rem + 0.3vw, 1rem);
+    letter-spacing: 2px;
     line-height: 1;
+    white-space: nowrap;
   }
 
   .niha-rating__stars::before {
     content: '★★★★★';
-    color: currentColor;
-    opacity: 0.3;
+    color: var(--niha-rating-gold);
+    opacity: 0.25;
   }
 
   .niha-rating__stars::after {
@@ -82,6 +86,6 @@
     width: var(--niha-rating-fill, 0%);
     overflow: hidden;
     white-space: nowrap;
-    color: var(--niha-ink, #201c19);
+    color: var(--niha-rating-gold);
   }
 {% endstylesheet %}

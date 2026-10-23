@@ -3,15 +3,15 @@
 {% liquid
   assign block_settings = block.settings
   assign product = closest.product
-  assign rating = product.metafields.reviews.rating.value.rating
-  assign scale_max = product.metafields.reviews.rating.value.scale_max
-  assign rating_count = product.metafields.reviews.rating_count
+  assign rating = product.metafields.custom.product_rating.value.rating
+  assign scale_max = product.metafields.custom.product_rating.value.scale_max
+  assign rating_count = product.metafields.custom.product_rating_count
 
   if request.visual_preview_mode and product == blank
     assign product = collections.all.products.first
-    assign rating = product.metafields.reviews.rating.value | default: 4
-    assign scale_max = product.metafields.reviews.rating.value.scale_max | default: 5
-    assign rating_count = product.metafields.reviews.rating_count | default: 3
+    assign rating = product.metafields.custom.product_rating.value | default: 4
+    assign scale_max = product.metafields.custom.product_rating.value.scale_max | default: 5
+    assign rating_count = product.metafields.custom.product_rating_count | default: 3
   endif
 
   # Theme editor only: sample stars (mostly 5, some 4.5) so the design can be reviewed before real
@@ -133,8 +133,8 @@
 
 {% stylesheet %}
   .rating-wrapper {
-    --star-fill-color: var(--color-foreground);
-    --star-fill-color-rgb: var(--color-foreground-rgb);
+    --star-fill-color: #c59d3f;
+    --star-fill-color-rgb: 197 157 63;
     --color: var(--color-foreground);
     --color-rgb: var(--color-foreground-rgb);
     gap: var(--gap-xs);
@@ -157,7 +157,7 @@
 
   .rating-wrapper .rating-count,
   .rating-wrapper .rating-count-separator {
-    color: var(--star-fill-color);
+    color: var(--color);
     margin: 0;
     white-space: nowrap;
   }
