@@ -74,6 +74,7 @@ class HeaderDrawer extends Component {
 
     summary.setAttribute('aria-expanded', 'true');
 
+    this.#offsetBelowAnnouncementBar();
     this.preventInitialAccordionAnimations(details);
     requestAnimationFrame(() => {
       details.classList.add('menu-open');
@@ -86,6 +87,17 @@ class HeaderDrawer extends Component {
       const drawer = details.querySelector('.menu-drawer, .menu-drawer__submenu');
       onAnimationEnd(drawer || details, () => trapFocus(details), { subtree: false });
     });
+  }
+
+  /**
+   * The announcement bar stacks above the drawer, so start the drawer below whatever part of the bar
+   * is still on screen. That keeps both the bar and the drawer's close button visible.
+   */
+  #offsetBelowAnnouncementBar() {
+    const bar = document.querySelector('[data-announcement-bar]');
+    const offset = bar ? Math.max(0, Math.round(bar.getBoundingClientRect().bottom)) : 0;
+
+    this.refs.menuDrawer.style.setProperty('--menu-drawer-top', `${offset}px`);
   }
 
   /**

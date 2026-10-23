@@ -877,12 +877,13 @@
     position: fixed;
     transform: translateX(-100%);
     visibility: hidden;
-    height: var(--drawer-height);
+    /* --menu-drawer-top is set by header-drawer.js so the drawer starts below the announcement bar */
+    height: calc(var(--drawer-height) - var(--menu-drawer-top, 0px));
     width: var(--drawer-width);
     max-width: var(--drawer-max-width);
     z-index: var(--layer-menu-drawer);
     left: 0;
-    top: 0;
+    top: var(--menu-drawer-top, 0px);
     padding: 0;
     background-color: var(--color-background);
     overflow: auto;
@@ -1286,7 +1287,7 @@
     position: absolute;
     width: 100%;
     top: 0;
-    height: 100dvh;
+    height: calc(100dvh - var(--menu-drawer-top, 0px));
     left: 0;
     background-color: var(--color-background);
     z-index: var(--layer-flat);
