@@ -29,6 +29,13 @@ export default class VariantPicker extends Component {
   /** @type {HTMLInputElement[][]} */
   #radios = [];
 
+  /**
+   * Values the shopper picked in fieldsets the server always renders unselected (Size).
+   * Re-applied after each morph so the choice survives the re-render.
+   * @type {Map<number, string>}
+   */
+  #requiredSelections = new Map();
+
   #resizeObserver = new ResizeNotifier(() => this.updateVariantPickerCss());
 
   connectedCallback() {
@@ -66,6 +73,10 @@ export default class VariantPicker extends Component {
     if (!selectedOption) return;
 
     this.updateSelectedOption(event.target);
+
+    if (event.target instanceof HTMLInputElement && event.target.closest('[data-require-selection]')) {
+      this.#requiredSelections.set(Number.parseInt(event.target.dataset.fieldsetIndex || ''), event.target.value);
+    }
 
     const isOnProductPage =
       this.dataset.templateProductMatch === 'true' &&
@@ -466,9 +477,52 @@ export default class VariantPicker extends Component {
         return key;
       },
     });
+    this.#restoreRequiredSelections();
     this.updateVariantPickerCss();
 
     return newProduct;
+  }
+
+  /**
+   * Re-checks the shopper's choice in fieldsets that the server renders unselected.
+   */
+  #restoreRequiredSelections() {
+    const fieldsets = /** @type {HTMLFieldSetElement[]} */ (this.refs.fieldsets || []);
+
+    for (const [fieldsetIndex, value] of this.#requiredSelections) {
+      const radio = Array.from(fieldsets[fieldsetIndex]?.querySelectorAll('input') ?? []).find(
+        (input) => input.value === value
+      );
+      if (!radio) continue;
+
+      radio.checked = true;
+      radio.dataset.currentChecked = 'true';
+    }
+  }
+
+  /**
+   * Gets the name of the first option that still needs a selection (e.g. Size), if any.
+   * @returns {string | undefined}
+   */
+  get missingRequiredOption() {
+    const fieldsets = /** @type {HTMLFieldSetElement[]} */ (this.refs.fieldsets || []);
+    const fieldset = fieldsets.find(
+      (fieldset) => fieldset.dataset.requireSelection && !fieldset.querySelector('input:checked')
+    );
+
+    return fieldset?.dataset.requireSelection;
+  }
+
+  /**
+   * Scrolls to the first option that still needs a selection.
+   */
+  revealMissingRequiredOption() {
+    const fieldsets = /** @type {HTMLFieldSetElement[]} */ (this.refs.fieldsets || []);
+    const fieldset = fieldsets.find(
+      (fieldset) => fieldset.dataset.requireSelection && !fieldset.querySelector('input:checked')
+    );
+
+    fieldset?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
   updateVariantPickerCss() {

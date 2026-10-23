@@ -23,16 +23,12 @@
   endif
   assign fieldset_index = 0
 
-  # On the product page, don't preselect a size - the shopper has to choose one.
-  # Once a variant is in the URL (or chosen via option_values) the size is selected as usual.
+  # On the product page the Size option is never preselected, even when the URL carries
+  # ?variant= (search results add it). variant-picker.js restores the shopper's own choice
+  # after each re-render, and product-form.js blocks add to cart until one is made.
   assign size_unselected = false
-  if request.page_type == 'product' and product.selected_variant == blank
-    for option in product_resource.options_with_values
-      assign option_name = option.name | downcase
-      if option_name == 'size' and option.values.size > 1
-        assign size_unselected = true
-      endif
-    endfor
+  if request.page_type == 'product' and product.id == product_resource.id
+    assign size_unselected = true
   endif
 %}
 
@@ -80,7 +76,7 @@
 
           assign skip_preselect = false
           assign current_option_name = product_option.name | downcase
-          if size_unselected and current_option_name == 'size'
+          if size_unselected and current_option_name == 'size' and product_option.values.size > 1
             assign skip_preselect = true
           endif
 
@@ -110,6 +106,9 @@
             data-fieldset-index="{{ fieldset_index }}"
             ref="fieldsets[]"
             {{ option_id_attribute }}
+            {% if skip_preselect %}
+              data-require-selection="{{ product_option.name | escape }}"
+            {% endif %}
           >
             <legend>
               {{ product_option.name | escape -}}

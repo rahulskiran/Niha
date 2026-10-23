@@ -74,6 +74,7 @@ export class AddToCartComponent extends Component {
 
     // Check if adding would exceed max before animating
     const productForm = /** @type {ProductFormComponent | null} */ (this.closest('product-form-component'));
+    if (productForm?.missingRequiredOption) return;
     const quantitySelector = productForm?.refs.quantitySelector;
     if (quantitySelector?.canAddToCart) {
       const validation = quantitySelector.canAddToCart();
@@ -238,6 +239,65 @@ class ProductFormComponent extends Component {
 
     // Listen for cart updates to sync data-cart-quantity
     document.addEventListener(StandardEvents.cartLinesUpdate, this.#onCartUpdate, { signal });
+
+    // Buy it now skips the form submit, so stop it in the capture phase when an option is missing
+    this.addEventListener('click', this.#onAcceleratedCheckoutClick, { capture: true, signal });
+  }
+
+  /**
+   * Gets the name of the option that still needs a selection (e.g. Size), if any.
+   * @returns {string | undefined}
+   */
+  get missingRequiredOption() {
+    return this.#getVariantPicker()?.missingRequiredOption;
+  }
+
+  /**
+   * Shows "Please select a size" (etc.) when an option still needs a selection.
+   * @returns {boolean} Whether an option was missing.
+   */
+  #blockIfOptionMissing() {
+    const optionName = this.missingRequiredOption;
+    if (!optionName) return false;
+
+    this.#showError(`Please select a ${optionName.toLowerCase()}`);
+    this.#getVariantPicker()?.revealMissingRequiredOption?.();
+    return true;
+  }
+
+  /** @param {MouseEvent} event */
+  #onAcceleratedCheckoutClick = (event) => {
+    if (!(event.target instanceof Element) || !event.target.closest('.accelerated-checkout-block')) return;
+    if (!this.#blockIfOptionMissing()) return;
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  };
+
+  /**
+   * Shows a message in the add to cart error slot and the live region.
+   * @param {string} message
+   */
+  #showError(message) {
+    const { addToCartTextError } = this.refs;
+    if (!addToCartTextError) return;
+
+    addToCartTextError.classList.remove('hidden');
+
+    const textNode = addToCartTextError.childNodes[2];
+    if (textNode) {
+      textNode.textContent = message;
+    } else {
+      addToCartTextError.appendChild(document.createTextNode(message));
+    }
+
+    this.#setLiveRegionText(message);
+
+    if (this.#timeout) clearTimeout(this.#timeout);
+    this.#timeout = setTimeout(() => {
+      addToCartTextError.classList.add('hidden');
+      this.#clearLiveRegionText();
+    }, ERROR_MESSAGE_DISPLAY_DURATION);
   }
 
   disconnectedCallback() {
@@ -323,6 +383,8 @@ class ProductFormComponent extends Component {
   /** @param {Event} event */
   handleSubmit(event) {
     event.preventDefault();
+
+    if (this.#blockIfOptionMissing()) return;
 
     if (this.#variantChangeInProgress) {
       this.#addToCartQueue.push(this.#createQueuedAddToCartItem());

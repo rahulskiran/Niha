@@ -34,22 +34,6 @@
       assign add_to_cart_text = 'products.product.unavailable' | t
     endif
   endif
-
-  # Mirrors variant-main-picker: no size is preselected on the product page, so
-  # there is nothing to add until the shopper picks one.
-  assign size_unselected = false
-  if request.page_type == 'product' and product.selected_variant == blank
-    for option in product.options_with_values
-      assign option_name = option.name | downcase
-      if option_name == 'size' and option.values.size > 1
-        assign size_unselected = true
-      endif
-    endfor
-  endif
-  if size_unselected
-    assign can_add_to_cart = false
-    assign add_to_cart_text = 'Select size'
-  endif
 %}
 
 <span
@@ -81,7 +65,7 @@
           type="hidden"
           name="id"
           ref="variantId"
-          value="{% unless size_unselected %}{{ product.selected_or_first_available_variant.id }}{% endunless %}"
+          value="{{ product.selected_or_first_available_variant.id }}"
         >
         {%- if block_settings.gift_card_form and product.gift_card? -%}
           {%- render 'gift-card-recipient-form', product: product, form: form, section: section, block: block -%}
