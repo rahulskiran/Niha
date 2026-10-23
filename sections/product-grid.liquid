@@ -118,6 +118,7 @@
         </a>
 
         <a class="pgrid__name" href="{{ product.url }}">{{ product.title }}</a>
+        {%- render 'niha-rating', product: product -%}
 
         <p class="pgrid__price">
           {%- if on_sale -%}

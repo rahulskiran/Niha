@@ -1,0 +1,79 @@
+{%- doc -%}
+  Renders a compact star rating beneath a product card title, read from the
+  product's standard reviews.rating / reviews.rating_count metafields (filled in
+  by hand in the admin or by a reviews app). Renders nothing when there's no rating,
+  except in the theme editor, which shows sample stars.
+
+  @param {object} product - The product object
+{%- enddoc -%}
+
+{%- liquid
+  assign rating = product.metafields.reviews.rating.value.rating
+  assign scale_max = product.metafields.reviews.rating.value.scale_max | default: 5
+  assign rating_count = product.metafields.reviews.rating_count.value | default: 0
+
+  # Theme editor only: sample stars (4.3-4.9) so the design can be reviewed before real
+  # ratings exist. Never rendered on the storefront.
+  if rating == blank and request.design_mode
+    assign sample_step = product.id | modulo: 7
+    assign rating = sample_step | divided_by: 10.0 | plus: 4.3
+    assign rating_count = product.id | modulo: 90 | plus: 12
+  endif
+-%}
+
+{%- if rating != blank -%}
+  {%- assign fill_percent = rating | times: 100.0 | divided_by: scale_max -%}
+  <div
+    class="niha-rating"
+    role="img"
+    aria-label="Rated {{ rating | round: 1 }} out of {{ scale_max }}{% if rating_count > 0 %}, {{ rating_count }} reviews{% endif %}"
+  >
+    <span
+      class="niha-rating__stars"
+      style="--niha-rating-fill: {{ fill_percent }}%;"
+      aria-hidden="true"
+    ></span>
+    <span class="niha-rating__value" aria-hidden="true">
+      {{- rating | round: 1 -}}
+      {%- if rating_count > 0 %} ({{ rating_count }}){% endif -%}
+    </span>
+  </div>
+{%- endif -%}
+
+{% stylesheet %}
+  .niha-rating {
+    grid-column: 1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 2px 0 0;
+    font-size: 0.75rem;
+    line-height: 1;
+    color: var(--niha-muted, #8b8577);
+  }
+
+  /* Two layers of the same five stars: a faint track, and a filled copy clipped to the rating */
+  .niha-rating__stars {
+    position: relative;
+    display: inline-block;
+    font-size: 0.8125rem;
+    letter-spacing: 1px;
+    line-height: 1;
+  }
+
+  .niha-rating__stars::before {
+    content: '★★★★★';
+    color: currentColor;
+    opacity: 0.3;
+  }
+
+  .niha-rating__stars::after {
+    content: '★★★★★';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: var(--niha-rating-fill, 0%);
+    overflow: hidden;
+    white-space: nowrap;
+    color: var(--niha-ink, #201c19);
+  }
+{% endstylesheet %}

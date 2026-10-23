@@ -171,6 +171,19 @@
                 "padding-inline-end": 0
               },
               "blocks": {
+                "review_rating": {
+                  "type": "review",
+                  "name": "Product rating",
+                  "settings": {
+                    "stars_style": "shaded",
+                    "show_number": true,
+                    "text_color": "",
+                    "type_preset": "paragraph",
+                    "width": "100%",
+                    "alignment": "left"
+                  },
+                  "blocks": {}
+                },
                 "text_xrnftG": {
                   "type": "text",
                   "name": "Product title",
@@ -222,6 +235,7 @@
               },
               "block_order": [
                 "text_xrnftG",
+                "review_rating",
                 "price_tVjtKg"
               ]
             },
