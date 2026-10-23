@@ -22,6 +22,18 @@
     assign has_custom_variant_buttons = true
   endif
   assign fieldset_index = 0
+
+  # On the product page, don't preselect a size - the shopper has to choose one.
+  # Once a variant is in the URL (or chosen via option_values) the size is selected as usual.
+  assign size_unselected = false
+  if request.page_type == 'product' and product.selected_variant == blank
+    for option in product_resource.options_with_values
+      assign option_name = option.name | downcase
+      if option_name == 'size' and option.values.size > 1
+        assign size_unselected = true
+      endif
+    endfor
+  endif
 %}
 
 {% unless product_resource.has_only_default_variant %}
@@ -64,6 +76,12 @@
             else
               assign variant_style = 'swatch'
             endif
+          endif
+
+          assign skip_preselect = false
+          assign current_option_name = product_option.name | downcase
+          if size_unselected and current_option_name == 'size'
+            assign skip_preselect = true
           endif
 
           if variant_style == 'buttons' and settings.variant_button_width == 'equal-width-buttons'
@@ -125,7 +143,7 @@
                   {% if product_option_value.variant.id %}
                     data-variant-id="{{ product_option_value.variant.id }}"
                   {% endif %}
-                  {% if product_option_value.selected %}
+                  {% if product_option_value.selected and skip_preselect != true %}
                     data-current-checked="true"
                     checked
                   {% else %}

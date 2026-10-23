@@ -40,9 +40,8 @@ export default class VariantPicker extends Component {
       this.#radios.push(radios);
 
       const initialCheckedIndex = radios.findIndex((radio) => radio.dataset.currentChecked === 'true');
-      if (initialCheckedIndex !== -1) {
-        this.#checkedIndices.push([initialCheckedIndex]);
-      }
+      // Push an empty entry when nothing is preselected (e.g. Size) so later fieldsets keep their index.
+      this.#checkedIndices.push(initialCheckedIndex !== -1 ? [initialCheckedIndex] : []);
     });
 
     this.addEventListener('change', this.variantChanged.bind(this));
